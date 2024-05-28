@@ -4,7 +4,6 @@
 #define INADDR_BROADCAST 0xffffffff
 #define INADDR_NONE 0xffffffff
 #define INADDR_LOOPBACK 0x7f000001
-
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>

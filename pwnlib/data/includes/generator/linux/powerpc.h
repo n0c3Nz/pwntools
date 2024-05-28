@@ -1,7 +1,6 @@
 #define __ppc__
 #include <ppc/syscalls.h>
 #include <common.h>
-
 #define r0 0
 #define r1 1
 #define r2 2

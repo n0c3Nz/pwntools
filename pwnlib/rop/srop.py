@@ -1,28 +1,21 @@
 # -*- coding: utf-8 -*-
 r"""
 Sigreturn ROP (SROP)
-
 Sigreturn is a syscall used to restore the entire register context
 from memory pointed at by ESP.
-
 We can leverage this during ROP to gain control of registers for which
 there are not convenient gadgets.  The main caveat is that *all* registers
 are set, including ESP and EIP (or their equivalents).  This means that
 in order to continue after using a sigreturn frame, the stack pointer
 must be set accordingly.
-
 i386 Example:
-
     Let's just print a message out using SROP.
-
     >>> message = "Hello, World\\n"
-
     First, we'll create our example binary.
     It just reads some data onto the stack, and invokes
     the ``sigreturn`` syscall.
     We also make an ``int 0x80`` gadget available, followed
     immediately by ``exit(0)``.
-
     >>> context.clear(arch='i386')
     >>> assembly =  'setup: sub esp, 1024\n'
     >>> assembly += 'read:'      + shellcraft.read(constants.STDIN_FILENO, 'esp', 1024)
@@ -32,10 +25,8 @@ i386 Example:
     >>> assembly += 'exit: '     + 'xor ebx, ebx; mov eax, 1; int 0x80;'
     >>> assembly += 'message: '  + ('.asciz "%s"' % message)
     >>> binary = ELF.from_assembly(assembly)
-
     Let's construct our frame to have it invoke a ``write``
     syscall, and dump the message to stdout.
-
     >>> frame = SigreturnFrame(kernel='amd64')
     >>> frame.eax = constants.SYS_write
     >>> frame.ebx = constants.STDOUT_FILENO
@@ -43,18 +34,14 @@ i386 Example:
     >>> frame.edx = len(message)
     >>> frame.esp = 0xdeadbeef
     >>> frame.eip = binary.symbols['syscall']
-
     Let's start the process, send the data, and check the message.
-
     >>> p = process(binary.path)
     >>> p.send(bytes(frame))
     >>> p.recvline()
     b'Hello, World\n'
     >>> p.poll(block=True)
     0
-
 amd64 Example:
-
     >>> context.clear()
     >>> context.arch = "amd64"
     >>> assembly =  'setup: sub rsp, 1024\n'
@@ -78,9 +65,7 @@ amd64 Example:
     b'Hello, World\n'
     >>> p.poll(block=True)
     0
-
 arm Example:
-
     >>> context.clear()
     >>> context.arch = "arm"
     >>> assembly =  'setup: sub sp, sp, 1024\n'
@@ -105,9 +90,7 @@ arm Example:
     >>> p.wait_for_close()
     >>> p.poll(block=True)
     0
-
 Mips Example:
-
     >>> context.clear()
     >>> context.arch = "mips"
     >>> context.endian = "big"
@@ -131,9 +114,7 @@ Mips Example:
     b'Hello, World\n'
     >>> p.poll(block=True)
     0
-
 Mipsel Example:
-
     >>> context.clear()
     >>> context.arch = "mips"
     >>> context.endian = "little"
@@ -157,13 +138,10 @@ Mipsel Example:
     b'Hello, World\n'
     >>> p.poll(block=True)
     0
-
 """
 from __future__ import absolute_import
 from __future__ import division
-
 from collections import namedtuple
-
 from pwnlib.abi import ABI
 from pwnlib.context import LocalContext
 from pwnlib.context import context
@@ -171,9 +149,7 @@ from pwnlib.log import getLogger
 from pwnlib.util.packing import flat
 from pwnlib.util.packing import pack
 from pwnlib.util.packing import unpack_many
-
 log = getLogger(__name__)
-
 registers = {
 # Reference : http://lxr.free-electrons.com/source/arch/x86/include/asm/sigcontext.h?v=2.6.28#L138
         'i386' : {0: 'gs', 4: 'fs', 8: 'es', 12: 'ds', 16: 'edi', 20: 'esi', 24: 'ebp', 28: 'esp',
@@ -216,7 +192,6 @@ registers = {
                     536: 'x28', 544: 'x29', 552: 'x30', 560: 'sp',
                     568: 'pc', 592: 'magic'}
 }
-
 defaults = {
     "i386" : {"cs": 0x73, "ss": 0x7b},
     "i386_on_amd64": {"cs": 0x23, "ss": 0x2b},
@@ -225,7 +200,6 @@ defaults = {
     "mips": {},
     "aarch64": {"magic": 0x0000021046508001},
 }
-
 instruction_pointers = {
     'i386': 'eip',
     'amd64': 'rip',
@@ -233,7 +207,6 @@ instruction_pointers = {
     'mips': 'pc',
     'aarch64': 'pc',
 }
-
 stack_pointers = {
     'i386': 'esp',
     'amd64': 'rsp',
@@ -241,7 +214,6 @@ stack_pointers = {
     'mips': 'sp',
     'aarch64': 'sp',
 }
-
 # # XXX Need to add support for Capstone in order to extract ARM and MIPS
 # XXX as the SVC code may vary.
 syscall_instructions = {
@@ -252,21 +224,16 @@ syscall_instructions = {
     'thumb': ['svc 0'],
     'mips': ['syscall']
 }
-
 class SigreturnFrame(dict):
     r"""
     Crafts a sigreturn frame with values that are loaded up into
     registers.
-
     Arguments:
         arch(str):
             The architecture. Currently ``i386`` and ``amd64`` are
             supported.
-
     Examples:
-
         Crafting a SigreturnFrame that calls mprotect on amd64
-
         >>> context.clear(arch='amd64')
         >>> s = SigreturnFrame()
         >>> unpack_many(bytes(s))
@@ -279,9 +246,7 @@ class SigreturnFrame(dict):
         >>> assert len(bytes(s)) == 248
         >>> unpack_many(bytes(s))
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6295552, 4096, 0, 0, 7, 10, 0, 0, 0, 0, 51, 0, 0, 0, 0, 0, 0, 0]
-
         Crafting a SigreturnFrame that calls mprotect on i386
-
         >>> context.clear(arch='i386')
         >>> s = SigreturnFrame(kernel='i386')
         >>> unpack_many(bytes(s))
@@ -294,9 +259,7 @@ class SigreturnFrame(dict):
         >>> assert len(bytes(s)) == 80
         >>> unpack_many(bytes(s))
         [0, 0, 0, 0, 0, 0, 0, 0, 6295552, 7, 4096, 125, 0, 0, 0, 115, 0, 0, 123, 0]
-
         Crafting a SigreturnFrame that calls mprotect on ARM
-
         >>> s = SigreturnFrame(arch='arm')
         >>> unpack_many(bytes(s))
         [0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1073741840, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1447448577, 288]
@@ -307,9 +270,7 @@ class SigreturnFrame(dict):
         >>> assert len(bytes(s)) == 240
         >>> unpack_many(bytes(s))
         [0, 0, 0, 0, 0, 6, 0, 0, 125, 6295552, 4096, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1073741840, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1447448577, 288]
-
         Crafting a SigreturnFrame that calls mprotect on MIPS
-
         >>> context.clear()
         >>> context.endian = "big"
         >>> s = SigreturnFrame(arch='mips')
@@ -322,9 +283,7 @@ class SigreturnFrame(dict):
         >>> assert len(bytes(s)) == 296
         >>> unpack_many(bytes(s))
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4125, 0, 0, 0, 6295552, 0, 4096, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
         Crafting a SigreturnFrame that calls mprotect on MIPSel
-
         >>> context.clear()
         >>> context.endian = "little"
         >>> s = SigreturnFrame(arch='mips')
@@ -337,9 +296,7 @@ class SigreturnFrame(dict):
         >>> assert len(bytes(s)) == 292
         >>> unpack_many(bytes(s))
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4125, 0, 0, 0, 6295552, 0, 4096, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
         Crafting a SigreturnFrame that calls mprotect on Aarch64
-
         >>> context.clear()
         >>> context.endian = "little"
         >>> s = SigreturnFrame(arch='aarch64')
@@ -353,28 +310,23 @@ class SigreturnFrame(dict):
         >>> unpack_many(bytes(s))
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16384, 0, 4096, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 226, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1179680769, 528]
     """
-
     arch = None
     frame = None
     size  = 0
     _regs = []
     endian = None
-
     @LocalContext
     def __init__(self):
         if context.kernel is None and context.arch == 'i386':
             log.error("kernel architecture must be specified")
-
         self.arch = context.arch
         self.endian = context.endian
         self._regs = [self.registers[i] for i in sorted(self.registers.keys())]
         self.update({r:0 for r in self._regs})
         self.size = len(bytes(self))
         self.update(defaults[self.arch])
-
         if context.arch == 'i386' and context.kernel == 'amd64':
             self.update(defaults['i386_on_amd64'])
-
     def __setitem__(self, item, value):
         if item not in self._regs:
             log.error("Unknown register %r (not in %r)" % (item, self._regs))
@@ -383,18 +335,15 @@ class SigreturnFrame(dict):
         if self.arch == "aarch64" and item == "sp" and (value & 0xf):
             log.warn_once("AArch64 SP should be aligned to a 16-byte boundary")
         super(SigreturnFrame, self).__setitem__(item, value)
-
     def __setattr__(self, attr, value):
         if attr in SigreturnFrame.__dict__:
             super(SigreturnFrame, self).__setattr__(attr, value)
         else:
             self.set_regvalue(attr, value)
-
     def __getattr__(self, attr):
         if attr in self:
             return self[attr]
         raise AttributeError(attr)
-
     def __bytes__(self):
         frame = b""
         with context.local(arch=self.arch):
@@ -403,71 +352,55 @@ class SigreturnFrame(dict):
                     frame += b"\x00"*(register_offset - len(frame))
                 frame += pack(self[self.registers[register_offset]])
         return frame
-
     def __str__(self):
         return str(self.__bytes__())
-
     def __len__(self):
         return self.size
-
     def __flat__(self):
         return bytes(self)
-
     @property
     def registers(self):
         if self.arch == "mips" and self.endian == "little":
             return registers["mipsel"]
         return registers[self.arch]
-
     @property
     def register_offsets(self):
         if self.arch == "mips" and self.endian == "little":
             return registers["mipsel"]
         return registers[self.arch].keys()
-
     @property
     def arguments(self):
         # Skip the register used to hold the syscall number
         return ABI.syscall(arch=self.arch).register_arguments[1:]
-
     @arguments.setter
     def arguments(self, a):
         for arg, reg in zip(a, self.arguments):
             setattr(self, reg, arg)
-
     @property
     def sp(self):
         return self[stack_pointers[self.arch]]
-
     @sp.setter
     def sp(self, v):
         self[stack_pointers[self.arch]] = v
-
     @property
     def pc(self):
         return self[instruction_pointers[self.arch]]
-
     @pc.setter
     def pc(self, v):
         self[instruction_pointers[self.arch]] = v
-
     @property
     def syscall(self):
         return self[self.syscall_register]
-
     @syscall.setter
     def syscall(self, v):
         self[self.syscall_register] = v
-
     @property
     def syscall_register(self):
         return ABI.syscall(arch=self.arch).syscall_register
-
     def set_regvalue(self, reg, val):
         """
         Sets a specific ``reg`` to a ``val``
         """
         self[reg] = val
-
     def get_spindex(self):
         return self._regs.index(stack_pointers[self.arch])

@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 from __future__ import division
-
 import atexit
 import errno
 import os
@@ -11,39 +10,26 @@ import struct
 import sys
 import threading
 import traceback
-
 if sys.platform != 'win32':
     import fcntl
     import termios
-
 from pwnlib.context import ContextType
 from pwnlib.term import termcap
-
 __all__ = ['output', 'init']
-
 # we assume no terminal can display more lines than this
 MAX_TERM_HEIGHT = 200
-
 # default values
 width = 80
 height = 25
-
 # list of callbacks triggered on SIGWINCH
 on_winch = []
-
-
-
 settings = None
 _graphics_mode = False
-
 fd = sys.stdout
-
 def show_cursor():
     do('cnorm')
-
 def hide_cursor():
     do('civis')
-
 def update_geometry():
     global width, height
     hw = fcntl.ioctl(fd.fileno(), termios.TIOCGWINSZ, '1234')
@@ -57,7 +43,6 @@ def update_geometry():
                 cell.end = (cell.end[0] + delta, cell.end[1])
                 cell.start = (cell.start[0] + delta, cell.start[1])
     height, width = h, w
-
 def handler_sigwinch(signum, stack):
     if hasattr(signal, 'pthread_sigmask'):
         signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGWINCH})
@@ -67,15 +52,12 @@ def handler_sigwinch(signum, stack):
         cb()
     if hasattr(signal, 'pthread_sigmask'):
         signal.pthread_sigmask(signal.SIG_UNBLOCK, {signal.SIGWINCH})
-
 def handler_sigstop(signum, stack):
     resetterm()
     os.kill(os.getpid(), signal.SIGSTOP)
-
 def handler_sigcont(signum, stack):
     setupterm()
     redraw()
-
 def setupterm():
     global settings
     update_geometry()
@@ -95,7 +77,6 @@ def setupterm():
     mode[CC][termios.VMIN] = 1
     mode[CC][termios.VTIME] = 0
     termios.tcsetattr(fd, termios.TCSAFLUSH, mode)
-
 def resetterm():
     if settings:
         termios.tcsetattr(fd.fileno(), termios.TCSADRAIN, settings)
@@ -103,7 +84,6 @@ def resetterm():
     do('rmkx')
     fd.write(' \x08') # XXX: i don't know why this is needed...
                       #      only necessary when suspending the process
-
 def init():
     atexit.register(resetterm)
     setupterm()
@@ -148,11 +128,9 @@ def init():
         sys.stdout = Wrapper(sys.stdout)
     if sys.stderr.isatty():
         sys.stderr = Wrapper(sys.stderr)
-
     console = ContextType.defaults['log_console']
     if console.isatty():
         ContextType.defaults['log_console'] = Wrapper(console)
-
     # freeze all cells if an exception is thrown
     orig_hook = sys.excepthook
     def hook(*args):
@@ -169,28 +147,21 @@ def init():
         if fd.fileno() == 2:
             os.close(fd.fileno())
     sys.excepthook = hook
-
 def put(s):
     if not isinstance(s, six.string_types):
         s = s.decode('utf-8')
     fd.write(s)
-
 def flush(): fd.flush()
-
 def do(c, *args):
     s = termcap.get(c, *args)
     if s:
         put(s)
-
 def goto(r, c):
     do('cup', r - scroll + height - 1, c)
-
 cells = []
 scroll = 0
-
 class Cell(object):
     pass
-
 class Handle:
     def __init__(self, cell, is_floating):
         self.h = id(cell)
@@ -201,7 +172,6 @@ class Handle:
         freeze(self.h)
     def delete(self):
         delete(self.h)
-
 STR, CSI, LF, BS, CR, SOH, STX, OOB = range(8)
 def parse_csi(buf, offset):
     i = offset
@@ -239,7 +209,6 @@ def parse_csi(buf, offset):
             break
         i += 1
     return cmd, args, end + 1
-
 def parse_utf8(buf, offset):
     c0 = buf[offset]
     n = 0
@@ -255,7 +224,6 @@ def parse_utf8(buf, offset):
         n = 6
     if n:
         return offset + n
-
 def parse(s):
     global _graphics_mode
     if isinstance(s, six.text_type):
@@ -330,20 +298,16 @@ def parse(s):
         elif c == 0x0d:
             x = (CR, None)
             i += 1
-
         if x is None:
             x = (STR, [six.int2byte(c) for c in bytearray(b'\\x%02x' % c)])
             i += 1
-
         if _graphics_mode:
             continue
-
         if x[0] == STR and out and out[-1][0] == STR:
             out[-1][1].extend(x[1])
         else:
             out.append(x)
     return out
-
 saved_cursor = None
 # XXX: render cells that is half-way on the screen
 def render_cell(cell, clear_after = False):
@@ -449,7 +413,6 @@ def render_cell(cell, clear_after = False):
             row -= d
     row = row + scroll - height + 1
     cell.end = (row, col)
-
 def render_from(i, force = False, clear_after = False):
     e = None
     # `i` should always be a valid cell, but in case i f***ed up somewhere, I'll
@@ -468,7 +431,6 @@ def render_from(i, force = False, clear_after = False):
     if clear_after and (e[0] < scroll or e[1] < width - 1):
         put('\x1b[J')
     flush()
-
 def redraw():
     for i in reversed(range(len(cells))):
         row = cells[i].start[0]
@@ -480,7 +442,6 @@ def redraw():
         if not cells:
             return
     render_from(i, force = True, clear_after = True)
-
 lock = threading.Lock()
 def output(s = '', float = False, priority = 10, frozen = False,
             indent = 0, before = None, after = None):
@@ -523,20 +484,17 @@ def output(s = '', float = False, priority = 10, frozen = False,
         else:
             render_from(i, clear_after = True)
         return h
-
 def find_cell(h):
     for i, c in enumerate(cells):
         if id(c) == h:
             return i, c
     raise KeyError
-
 def discard_frozen():
     # we assume that no cell will shrink very much and that noone has space
     # for more than MAX_TERM_HEIGHT lines in their terminal
     while len(cells) > 1 and scroll - cells[0].end[0] > MAX_TERM_HEIGHT:
         c = cells.pop(0)
         del c # trigger GC maybe, kthxbai
-
 def update(h, s):
     with lock:
         try:
@@ -546,7 +504,6 @@ def update(h, s):
         if not c.frozen and c.content != s:
             c.content = parse(s)
             render_from(i, clear_after = True)
-
 def freeze(h):
     try:
         i, c = find_cell(h)
@@ -557,7 +514,6 @@ def freeze(h):
         discard_frozen()
     except KeyError:
         return
-
 def delete(h):
     update(h, '')
     freeze(h)

@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-
 # Pre-assembled shellcode for each architecture.
 #
 # This is literally the output of:

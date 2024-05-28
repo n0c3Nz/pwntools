@@ -1,22 +1,16 @@
 from __future__ import division
-
 import os
 import re
-
-
 def generate():
     """Generates a dictionary of all the known CRC formats from:
     https://reveng.sourceforge.io/crc-catalogue/all.htm
-
     See pwnlib/data/crcsum.txt for more information.
     """
-
     curdir, _ = os.path.split(__file__)
     path = os.path.join(curdir, '..', '..', 'data', 'crcsums.txt')
     with open(path) as fd:
         data = fd.read()
     out = {}
-
     def fixup(s):
         if s == 'true':
             return True
@@ -31,25 +25,18 @@ def generate():
         else:
             assert re.match('[0-9]+', s)
             return int(s, 10)
-
     for l in data.strip().split('\n'):
         if not l or l[0] == '#':
             continue
-
         ref, l = l.split(' ', 1)
-
         cur = {}
         cur['link'] = 'https://reveng.sourceforge.io/crc-catalogue/all.htm#' + ref
         for key in ['width', 'poly', 'init', 'refin', 'refout', 'xorout', 'check', 'name']:
             cur[key] = fixup(re.findall(r'%s=(\S+)' % key, l)[0])
-
         cur['name'] = cur['name'].lower().replace('/', '_').replace('-', '_')
         assert cur['name'] not in out
         out[cur['name']] = cur
-
     return out
-
-
 all_crcs = \
     {'crc_10_atm': {'check': 409,
                     'init': 0,

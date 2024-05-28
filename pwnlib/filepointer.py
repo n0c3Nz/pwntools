@@ -1,41 +1,30 @@
 # -*- coding: utf-8 -*-
-
 r"""
 File Structure Exploitation
-
 struct FILE (_IO_FILE) is the structure for File Streams.
 This offers various targets for exploitation on an existing bug in the code.
 Examples - ``_IO_buf_base`` and ``_IO_buf_end`` for reading data to arbitrary location.
-
 Remembering the offsets of various structure members while faking a FILE structure can be difficult,
 so this python class helps you with that. Example-
-
 >>> context.clear(arch='amd64')
 >>> fileStr = FileStructure(null=0xdeadbeef)
 >>> fileStr.vtable = 0xcafebabe
 >>> payload = bytes(fileStr)
 >>> payload
 b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\xef\xbe\xad\xde\x00\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\xef\xbe\xad\xde\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xbe\xba\xfe\xca\x00\x00\x00\x00'
-
 Now payload contains the FILE structure with its vtable pointer pointing to 0xcafebabe
-
 Currently only 'amd64' and 'i386' architectures are supported
 """
-
 from __future__ import absolute_import
 from __future__ import division
-
 from pwnlib.context import context
 from pwnlib.log import getLogger
 from pwnlib.util.misc import python_2_bytes_compatible
 from pwnlib.util.packing import pack
-
 log = getLogger(__name__)
-
 length=0
 size='size'
 name='name'
-
 variables={
     0:{name:'flags',size:length},
     1:{name:'_IO_read_ptr',size:length},
@@ -65,23 +54,16 @@ variables={
     25:{name:'unknown2',size:length},
     26:{name:'vtable',size:length}
 }
-
 del name, size, length
-
-
 def update_var(l):
     r"""
     Since different members of the file structure have different sizes, we need to keep track of the sizes. The following function is used by the FileStructure class to initialise the lengths of the various fields.
-
     Arguments:
         l(int)
             l=8 for 'amd64' architecture and l=4 for 'i386' architecture
-
     Return Value:
         Returns a dictionary in which each field is mapped to its corresponding length according to the architecture set
-
     Examples:
-
         >>> update_var(8)
         {'flags': 8, '_IO_read_ptr': 8, '_IO_read_end': 8, '_IO_read_base': 8, '_IO_write_base': 8, '_IO_write_ptr': 8, '_IO_write_end': 8, '_IO_buf_base': 8, '_IO_buf_end': 8, '_IO_save_base': 8, '_IO_backup_base': 8, '_IO_save_end': 8, 'markers': 8, 'chain': 8, 'fileno': 4, '_flags2': 4, '_old_offset': 8, '_cur_column': 2, '_vtable_offset': 1, '_shortbuf': 1, 'unknown1': 4, '_lock': 8, '_offset': 8, '_codecvt': 8, '_wide_data': 8, 'unknown2': 48, 'vtable': 8}
     """
@@ -96,21 +78,15 @@ def update_var(l):
     else:
         var['unknown2']=48
     return var
-
-
 @python_2_bytes_compatible
 class FileStructure(object):
     r"""
     Crafts a FILE structure, with default values for some fields, like _lock which should point to null ideally, set.
-
     Arguments:
         null(int)
             A pointer to NULL value in memory. This pointer can lie in any segment (stack, heap, bss, libc etc)
-
     Examples:
-
         FILE structure with flags as 0xfbad1807 and _IO_buf_base and _IO_buf_end pointing to 0xcafebabe and 0xfacef00d
-
         >>> context.clear(arch='amd64')
         >>> fileStr = FileStructure(null=0xdeadbeeef)
         >>> fileStr.flags = 0xfbad1807
@@ -119,14 +95,10 @@ class FileStructure(object):
         >>> payload = bytes(fileStr)
         >>> payload
         b'\x07\x18\xad\xfb\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xbe\xba\xfe\xca\x00\x00\x00\x00\r\xf0\xce\xfa\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\xef\xee\xdb\xea\r\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\xef\xee\xdb\xea\r\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-
         Check the length of the FileStructure
-
         >>> len(fileStr)
         224
-
         The definition for __repr__ orders the structure members and displays then in a dictionary format. It's useful when viewing a structure objet in python/IPython shell
-
         >>> q=FileStructure(0xdeadbeef)
         >>> q
         { flags: 0x0
@@ -157,31 +129,25 @@ class FileStructure(object):
          unknown2: 0x0
          vtable: 0x0}
     """
-
     vars_=[]
     length={}
-
     def __init__(self, null=0):
             self.vars_ = [variables[i]['name'] for i in sorted(variables.keys())]
             self.setdefault(null)
             self.length = update_var(context.bytes)
             self._old_offset = (1 << context.bits) - 1
-
     def __setattr__(self,item,value):
         if item in FileStructure.__dict__ or item in self.vars_:
             object.__setattr__(self,item,value)
         else:
             log.error("Unknown variable %r" % item)
-
     def __repr__(self):
         structure=[]
         for i in self.vars_:
             structure.append(" %s: %s" % (i,hex(getattr(self, i))))
         return "{"+ "\n".join(structure)+"}"
-
     def __len__(self):
         return len(bytes(self))
-
     def __bytes__(self):
         structure = b''
         for val in self.vars_:
@@ -191,19 +157,14 @@ class FileStructure(object):
                 if self.length[val] > 0:
                     structure += pack(getattr(self, val), self.length[val]*8)
         return structure
-
     def struntil(self,v):
         r"""
         Payload for stuff till 'v' where 'v' is a structure member. This payload includes 'v' as well.
-
         Arguments:
             v(string)
                 The name of the field uptil which the payload should be created.
-
         Example:
-
             Payload for data uptil _IO_buf_end
-
             >>> context.clear(arch='amd64')
             >>> fileStr = FileStructure(0xdeadbeef)
             >>> payload = fileStr.struntil("_IO_buf_end")
@@ -221,7 +182,6 @@ class FileStructure(object):
             if val == v:
                 break
         return structure[:-1]
-
     def setdefault(self,null):
             self.flags=0
             self._IO_read_ptr=0
@@ -250,21 +210,16 @@ class FileStructure(object):
             self._wide_data=null
             self.unknown2=0
             self.vtable=0
-
     def write(self,addr=0,size=0):
         r"""
         Writing data out from arbitrary memory address.
-
         Arguments:
             addr(int)
                 The address from which data is to be printed to stdout
             size(int)
                 The size, in bytes, of the data to be printed
-
         Example:
-
             Payload for writing 100 bytes to stdout from the address 0xcafebabe
-
             >>> context.clear(arch='amd64')
             >>> fileStr = FileStructure(0xdeadbeef)
             >>> payload = fileStr.write(addr=0xcafebabe, size=100)
@@ -278,21 +233,16 @@ class FileStructure(object):
         self._IO_read_end = addr
         self.fileno = 1
         return self.struntil('fileno')
-
     def read(self,addr=0,size=0):
         r"""
         Reading data into arbitrary memory location.
-
         Arguments:
             addr(int)
                 The address into which data is to be written from stdin
             size(int)
                 The size, in bytes, of the data to be written
-
         Example:
-
             Payload for reading 100 bytes from stdin into the address 0xcafebabe
-
             >>> context.clear(arch='amd64')
             >>> fileStr = FileStructure(0xdeadbeef)
             >>> payload = fileStr.read(addr=0xcafebabe, size=100)
@@ -306,21 +256,16 @@ class FileStructure(object):
         self._IO_buf_end = addr+size
         self.fileno = 0
         return self.struntil('fileno')
-
     def orange(self,io_list_all,vtable):
         r"""
         Perform a House of Orange (https://github.com/shellphish/how2heap/blob/master/glibc_2.23/house_of_orange.c), provided you have libc leaks.
-
         Arguments:
             io_list_all(int)
                 Address of _IO_list_all in libc.
             vtable(int)
                 Address of the fake vtable in memory
-
         Example:
-
             Example payload if address of _IO_list_all is 0xfacef00d and fake vtable is at 0xcafebabe -
-
             >>> context.clear(arch='amd64')
             >>> fileStr = FileStructure(0xdeadbeef)
             >>> payload = fileStr.orange(io_list_all=0xfacef00d, vtable=0xcafebabe)

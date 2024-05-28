@@ -1,22 +1,17 @@
 #include <asm/types.h>
-
 struct _fpreg {
 	__u16          significand[4];
 	__u16          exponent;
 };
-
 struct _fpxreg {
 	__u16          significand[4];
 	__u16          exponent;
 	__u16          padding[3];
 };
-
 struct _xmmreg {
 	unsigned long element[4];
 };
-
 struct _fpstate {
-	/* Regular FPU environment */
 	unsigned long 	cw;
 	unsigned long	sw;
 	unsigned long	tag;
@@ -26,20 +21,16 @@ struct _fpstate {
 	unsigned long	datasel;
 	struct _fpreg	_st[8];
 	__u16         	status;
-	__u16         	magic;		/* 0xffff = regular FPU data only */
-
-	/* FXSR FPU environment */
-	unsigned long	_fxsr_env[6];	/* FXSR FPU env is ignored */
+	__u16         	magic;		
+	unsigned long	_fxsr_env[6];	
 	unsigned long	mxcsr;
 	unsigned long	reserved;
-	struct _fpxreg	_fxsr_st[8];	/* FXSR FPU reg data is ignored */
+	struct _fpxreg	_fxsr_st[8];	
 	struct _xmmreg	_xmm[8];
 	unsigned long	padding[56];
 };
-
 #define X86_FXSR_MAGIC		0x0000
 #define PC(ctx) (ctx.eip)
-
 struct sigcontext {
 	__u16         gs, __gsh;
 	__u16         fs, __fsh;
@@ -64,4 +55,3 @@ struct sigcontext {
 	unsigned long oldmask;
 	unsigned long cr2;
 };
-

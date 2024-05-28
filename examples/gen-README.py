@@ -1,22 +1,15 @@
 """
 Script to generate README.md
 """
-
 from pwn import *
-
-
 out = '''# Examples
 While these examples should all work, they are not very representative of
 the pwntools project.
-
 We have a plan to create a separate repository with examples, primarily
 exploits. Until we do so, we recommend new users to look at
 https://docs.pwntools.com, as this is a better overview of our features.
-
 In no particular order the docstrings for each example:
-
 '''
-
 def append_example(_arg, top, names):
     global out
     for name in names:
@@ -36,8 +29,6 @@ def append_example(_arg, top, names):
         doc = util.safeeval.const(data[0:i + 3])
         out += '* `%s`\n' % path
         out += '```%s```\n' % doc
-
 for path, dirs, files in os.walk('.', onerror=None):
     append_example(dirs, path, sorted(files))
-
 write('README.md', out)

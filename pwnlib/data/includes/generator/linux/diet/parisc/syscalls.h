@@ -1,17 +1,3 @@
-/*
-  Copyright (C) 2001, 2002 Thomas M. Ogrisegg
-
-  This is free software. You can redistribute and
-  modify it under the terms of the GNU General Public
-  Public License.
-
-  This file is part of the hppa-Port of the dietlibc
-
-  syscalls.h
-    Header file including the systemcall index-
-    and implementation macros
-*/
-
 #define __NR_restart_syscall	0
 #define __NR_exit	1
 #define __NR_fork	2
@@ -385,9 +371,7 @@
 #define __NR_clone3	435
 #define __NR_openat2	437
 #define __NR_pidfd_getfd	438
-
 #define LINUX_GATEWAY_ADDR      0x100
-
 #define syscall_weak(name, sym, wsym) 	\
 .text!					\
 .type wsym, @function!			\
@@ -398,7 +382,6 @@ wsym:	!				\
 sym:					\
 	b __unified_syscall!		\
 	ldi __NR_##name, %r20!		\
-
 #define __syscall(name, sym, imp)  	\
 .text!					\
 .type sym,@function!			\
@@ -407,8 +390,6 @@ sym:					\
 sym:					\
 	b imp!				\
 	ldi __NR_##name, %r20!
-
 #define syscall(name, sym)	__syscall(name, sym, __unified_syscall)
 #define syscall5(name, sym)	__syscall(name, sym, __unified_syscall5)
 #define syscall6(name, sym)	__syscall(name, sym, __unified_syscall6)
-

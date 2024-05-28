@@ -1,9 +1,6 @@
 from __future__ import absolute_import
-
 from .version import __version__
-
 version = __version__
-
 __all__ = [
     'adb',
     'args',
@@ -37,5 +34,4 @@ __all__ = [
     'update',
     'version',
 ]
-
 from . import args

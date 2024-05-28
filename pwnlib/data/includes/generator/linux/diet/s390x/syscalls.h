@@ -1,8 +1,3 @@
-
-
-
-
-
 #define __NR_exit		  1
 #define __NR_fork		  2
 #define __NR_read		  3
@@ -104,7 +99,7 @@
 #define __NR_bdflush		134
 #define __NR_sysfs		135
 #define __NR_personality	136
-#define __NR_afs_syscall	137 /* Syscall for Andrew File System */
+#define __NR_afs_syscall	137 
 #define __NR_getdents		141
 #define __NR_select		142
 #define __NR_flock		143
@@ -149,7 +144,7 @@
 #define __NR_getpmsg		188
 #define __NR_putpmsg		189
 #define __NR_vfork		190
-#define __NR_getrlimit		191	/* SuS compliant getrlimit */
+#define __NR_getrlimit		191	
 #define __NR_lchown  		198
 #define __NR_getuid  		199
 #define __NR_getgid  		200
@@ -192,9 +187,6 @@
 #define __NR_sched_setaffinity	239
 #define __NR_sched_getaffinity	240
 #define __NR_tgkill		241
-/*
- * Number 242 is reserved for tux
- */
 #define __NR_io_setup		243
 #define __NR_io_destroy		244
 #define __NR_io_getevents	245
@@ -215,7 +207,6 @@
 #define __NR_clock_gettime	(__NR_timer_create+6)
 #define __NR_clock_getres	(__NR_timer_create+7)
 #define __NR_clock_nanosleep	(__NR_timer_create+8)
-/* Number 263 is reserved for vserver */
 #define __NR_statfs64		265
 #define __NR_fstatfs64		266
 #define __NR_remap_file_pages	267
@@ -363,7 +354,6 @@
 #define __NR_clone3 435
 #define __NR_openat2 437
 #define __NR_pidfd_getfd 438
-
 #define syscall_weak(name,wsym,sym) \
 .text; \
 .type wsym,@function; \
@@ -379,7 +369,6 @@ sym: \
 	svc 0 ; \
 	.endif ; \
 	j __unified_syscall
-
 #define syscall(name,sym) \
 .text; \
 .type sym,@function; \
@@ -392,4 +381,3 @@ sym: \
 	svc 0 ; \
 	.endif ; \
 	j __unified_syscall
-

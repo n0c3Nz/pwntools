@@ -1,8 +1,6 @@
 #ifndef __DLIBC_SYSCALL_H_
 #define __DLIBC_SYSCALL_H_
-
 #define __NR_Linux      1024
-
 #define __NR_ni_syscall	(__NR_Linux + 0)
 #define __NR_exit	(__NR_Linux + 1)
 #define __NR_read	(__NR_Linux + 2)
@@ -344,16 +342,13 @@
 #define __NR_pidfd_open	(__NR_Linux + 434)
 #define __NR_openat2	(__NR_Linux + 437)
 #define __NR_pidfd_getfd	(__NR_Linux + 438)
-
 #define __NR_umount_with_flags __NR_umount
-
 #define syscall(name, sym) \
 .text; \
 .globl sym; \
 sym: \
 	mov r15 = __NR_##name; \
 	br __unified_syscall;
-
 #define syscall_weak(name, sym, wsym) \
 .text; \
 .weak wsym; \
@@ -363,5 +358,4 @@ sym: \
 wsym: ; \
 	mov r15 = __NR_##name; \
 	br __unified_syscall;
-
 #endif

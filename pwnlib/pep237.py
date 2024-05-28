@@ -8,11 +8,8 @@
 # https://mail.python.org/pipermail/python-dev/2006-June/065918.html
 #
 from six.moves import builtins
-
 original_hex = builtins.hex
-
 def hex(number):
     original_hex.__doc__
     return original_hex(number).rstrip('L')
-
 builtins.hex = hex

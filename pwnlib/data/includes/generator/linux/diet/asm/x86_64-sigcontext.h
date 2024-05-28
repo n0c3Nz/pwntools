@@ -1,22 +1,17 @@
 #include <asm/types.h>
-
-/* FXSAVE frame */
-/* Note: reserved1/2 may someday contain valuable data. Always save/restore
-   them when you change signal frames. */
 struct _fpstate {
 	__u16	cwd;
 	__u16	swd;
-	__u16	twd;	/* Note this is not the same as the 32bit/x87/FSAVE twd */
+	__u16	twd;	
 	__u16	fop;
 	__u64	rip;
 	__u64	rdp;
 	__u32	mxcsr;
 	__u32	mxcsr_mask;
-	__u32	st_space[32];	/* 8*16 bytes for each FP-reg */
-	__u32	xmm_space[64];	/* 16*16 bytes for each XMM-reg  */
+	__u32	st_space[32];	
+	__u32	xmm_space[64];	
 	__u32	reserved2[24];
 };
-
 struct sigcontext { 		// ofs	ofs-x32
 	unsigned long r8;	// 0	0
 	unsigned long r9;	// 8	4
@@ -44,6 +39,6 @@ struct sigcontext { 		// ofs	ofs-x32
 	unsigned long trapno;	// 160	84
 	unsigned long oldmask;	// 168	88
 	unsigned long cr2;	// 176	92
-	struct _fpstate *fpstate;	/* zero when no FPU context */
+	struct _fpstate *fpstate;	
 	unsigned long reserved1[8];
 };

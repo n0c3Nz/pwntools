@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 from __future__ import division
-
 import os
 import signal
 import six
@@ -10,14 +9,11 @@ import subprocess
 import sys
 import time
 import types
-
 from pwnlib import term
 from pwnlib.log import getLogger
 from pwnlib.term.readline import raw_input
 from pwnlib.tubes.process import process
-
 log = getLogger(__name__)
-
 def testpwnproc(cmd):
     import fcntl
     import termios
@@ -52,23 +48,17 @@ from pwn import *
     p.stdout.write(b"\x1b[1;1R")
     time.sleep(0.5)
     return p
-
 def yesno(prompt, default=None):
     r"""Presents the user with prompt (typically in the form of question)
     which the user must answer yes or no.
-
     Arguments:
       prompt (str): The prompt to show
       default: The default option;  `True` means "yes"
-
     Returns:
       `True` if the answer was "yes", `False` if "no"
-
     Examples:
-
     .. doctest::
        :skipif: branch_dev
-
         >>> yesno("A number:", 20)
         Traceback (most recent call last):
         ...
@@ -85,12 +75,9 @@ def yesno(prompt, default=None):
          [?] is it good 1 [yes/no] True
          [?] is it good 2 [Yes/no] False
          [?] is it good 3 [yes/No] False
-
     Tests:
-
     .. doctest::
        :skipif: branch_dev
-
         >>> p = testpwnproc("print(yesno('is it ok??'))")
         >>> b"is it ok" in p.recvuntil(b"??")
         True
@@ -98,10 +85,8 @@ def yesno(prompt, default=None):
         >>> b"True" in p.recvall()
         True
     """
-
     if default is not None and not isinstance(default, bool):
         raise ValueError('yesno(): default must be a boolean or None')
-
     if term.term_mode:
         term.output(' [?] %s [' % prompt)
         yesfocus, yes = term.text.bold('Yes'), 'yes'
@@ -138,34 +123,25 @@ def yesno(prompt, default=None):
             elif opt in (b'n', b'no'):
                 return False
             print('Please answer yes or no')
-
 def options(prompt, opts, default = None):
     r"""Presents the user with a prompt (typically in the
     form of a question) and a number of options.
-
     Arguments:
       prompt (str): The prompt to show
       opts (list): The options to show to the user
       default: The default option to choose
-
     Returns:
       The users choice in the form of an integer.
-
     Examples:
-
     .. doctest::
        :skipif: branch_dev
-
         >>> options("Select a color", ("red", "green", "blue"), "green")
         Traceback (most recent call last):
         ...
         ValueError: options(): default must be a number or None
-
     Tests:
-
     .. doctest::
        :skipif: branch_dev
-
         >>> p = testpwnproc("print(options('select a color', ('red', 'green', 'blue')))")
         >>> p.sendline(b"\33[C\33[A\33[A\33[B\33[1;5A\33[1;5B 0310")
         >>> _ = p.recvall()
@@ -196,10 +172,8 @@ def options(prompt, opts, default = None):
                3) blue
              Choice 2
     """
-
     if default is not None and not isinstance(default, six.integer_types):
         raise ValueError('options(): default must be a number or None')
-
     if term.term_mode:
         numfmt = '%' + str(len(str(len(opts)))) + 'd) '
         print(' [?] ' + prompt)
@@ -246,7 +220,6 @@ def options(prompt, opts, default = None):
                     ds = d
                     n = int(ds)
                     cur = n - 1
-
             if prev != cur:
                 if prev is not None:
                     hs[prev].update(space)
@@ -271,15 +244,11 @@ def options(prompt, opts, default = None):
                 continue
             if x >= 1 and x <= len(opts):
                 return x - 1
-
 def pause(n=None):
     r"""Waits for either user input or a specific number of seconds.
-
     Examples:
-
     .. doctest::
        :skipif: branch_dev
-
         >>> with context.local(log_level="INFO"):
         ...     pause(1)
         [x] Waiting
@@ -289,12 +258,9 @@ def pause(n=None):
         Traceback (most recent call last):
         ...
         ValueError: pause(): n must be a number or None
-
     Tests:
-
     .. doctest::
        :skipif: branch_dev
-
         >>> saved_stdin = sys.stdin
         >>> try:
         ...     sys.stdin = io.TextIOWrapper(io.BytesIO(b"\n"))
@@ -309,7 +275,6 @@ def pause(n=None):
         >>> p.send(b"x")
         >>> _ = p.recvall()
     """
-
     if n is None:
         if term.term_mode:
             log.info('Paused (press any to continue)')
@@ -325,25 +290,17 @@ def pause(n=None):
             l.success()
     else:
         raise ValueError('pause(): n must be a number or None')
-
 def more(text):
     r"""more(text)
-
     Shows text like the command line tool ``more``.
-
     It not in term_mode, just prints the data to the screen.
-
     Arguments:
       text(str):  The text to show.
-
     Returns:
       :const:`None`
-
     Tests:
-
     .. doctest::
        :skipif: branch_dev
-       
         >>> more("text")
         text
         >>> p = testpwnproc("more('text\\n' * (term.height + 2))")

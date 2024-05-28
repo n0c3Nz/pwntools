@@ -24,14 +24,12 @@
 # SOFTWARE.
 from __future__ import absolute_import
 from __future__ import division
-
 import six
 from pwnlib import asm
 from pwnlib import shellcraft
 from pwnlib.context import context
 from pwnlib.encoders.encoder import Encoder
 from pwnlib.util.fiddling import xor_key
-
 decoders = {
     'little': b''.join([
     b'SIZ2SIZ1\x0e\x24',    # li t6,-5
@@ -96,12 +94,8 @@ decoders = {
     b'\x01\x4a\x54\x0c'    # syscall 0x52950
     ])
 }
-
-
-
 class MipsXorEncoder(Encoder):
     r"""Generates an XOR decoder for MIPS.
-
     >>> context.clear(arch='mips')
     >>> shellcode = asm(shellcraft.sh())
     >>> avoid = b'/bin/sh\x00'
@@ -112,27 +106,18 @@ class MipsXorEncoder(Encoder):
     >>> p.recvline()
     b'hello\n'
     """
-
     arch = 'mips'
     blacklist = cannot_avoid = set(b''.join(v for v in decoders.values()))
-
     def __call__(self, raw_bytes, avoid, pcreg=''):
-
         assert 0 == len(raw_bytes) % context.bytes, "Payload is not aligned"
-
         size = (len(raw_bytes) // 4) + 1
         assert size < 0x10000, "Payload is too long"
-
         size   = size ^ 0xffff
         sizelo = size & 0xff
         sizehi = size >> 8
-
         decoder = decoders[context.endian]
         decoder = decoder.replace(b'SIZ1', six.int2byte(sizehi))
         decoder = decoder.replace(b'SIZ2', six.int2byte(sizelo))
-
         key, data = xor_key(raw_bytes, avoid=avoid)
-
         return decoder + key + data
-
 encode = MipsXorEncoder()

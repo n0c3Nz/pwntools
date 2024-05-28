@@ -2,9 +2,7 @@
 Functions for computing various hashes of files and strings.
 """
 from __future__ import division
-
 import hashlib
-
 for _algo in hashlib.algorithms_guaranteed:
     def _closure():
         hash = hashlib.__dict__[_algo]

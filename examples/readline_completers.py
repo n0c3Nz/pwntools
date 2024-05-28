@@ -3,11 +3,9 @@ Example showing pwnlib's readline implementation and a few completers.  This
 part of pwnlib will probably see some major changes soon, but we wanted to show
 off some proof-of-concepts.
 """
-
 from pwn import *
 from pwnlib.term.completer import LongestPrefixCompleter
 from pwnlib.term.completer import PathCompleter
-
 c1 = LongestPrefixCompleter([
     'foobar',
     'foobaz',
@@ -15,9 +13,7 @@ c1 = LongestPrefixCompleter([
     'exit',
     'enough!',
     ])
-
 c2 = PathCompleter(mask = '*.py')
-
 with c1:
     print('type "exit" to exit')
     while True:

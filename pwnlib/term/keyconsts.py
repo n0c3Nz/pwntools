@@ -5,23 +5,19 @@ TYPE_POSITION    = 4
 TYPE_EOF         = 5
 TYPE_UNKNOWN     = 6
 TYPE_UNKNOWN_CSI = 7
-
 # Must be these exact values for CSI parsing to work
 MOD_NONE  = 0
 MOD_SHIFT = 1 << 0
 MOD_ALT   = 1 << 1
 MOD_CTRL  = 1 << 2
-
 # Special names in C0
 KEY_BACKSPACE    = 1
 KEY_TAB          = 2
 KEY_ENTER        = 3
 KEY_ESCAPE       = 4
-
 # Special names in G0
 KEY_SPACE        = 5
 KEY_DEL          = 6
-
 # Special keys
 KEY_UP           = 7
 KEY_DOWN         = 8
@@ -36,7 +32,6 @@ KEY_PAGEUP       = 16
 KEY_PAGEDOWN     = 17
 KEY_HOME         = 18
 KEY_END          = 19
-
 # Special keys from terminfo
 KEY_CANCEL       = 20
 KEY_CLEAR        = 21
@@ -60,7 +55,6 @@ KEY_RESUME       = 38
 KEY_SAVE         = 39
 KEY_SUSPEND      = 40
 KEY_UNDO         = 41
-
 # Numeric keypad special keys
 KEY_KP0          = 42
 KEY_KP1          = 43
@@ -80,7 +74,6 @@ KEY_KPDIV        = 56
 KEY_KPCOMMA      = 57
 KEY_KPPERIOD     = 58
 KEY_KPEQUALS     = 59
-
 # Name mapping
 KEY_NAMES = {
     KEY_BACKSPACE : '<backspace>',
@@ -143,11 +136,8 @@ KEY_NAMES = {
     KEY_KPPERIOD  : '<kp period>',
     KEY_KPEQUALS  : '<kp equals>',
     }
-
 KEY_NAMES_REVERSE = {v:k for k, v in KEY_NAMES.items()}
-
 # terminfo
-
 STRNAMES = [
     'ka1',
     'ka3',
@@ -299,7 +289,6 @@ STRNAMES = [
     'kund',
     'kcuu1',
     ]
-
 STRFNAMES = [
     'a1',
     'a3',
@@ -451,7 +440,6 @@ STRFNAMES = [
     'undo',
     'up',
     ]
-
 FUNCSYMS = {
     'backspace' : (KEY_DEL,       MOD_NONE ),
     'begin'     : (KEY_BEGIN,     MOD_NONE ),

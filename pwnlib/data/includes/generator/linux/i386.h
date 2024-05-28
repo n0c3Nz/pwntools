@@ -2,7 +2,6 @@
 #include <i386/syscalls.h>
 #include <linuxnet.h>
 #include <common.h>
-
 #define SYS_socketcall_socket SYS_SOCKET
 #define SYS_socketcall_bind SYS_BIND
 #define SYS_socketcall_connect SYS_CONNECT
@@ -20,4 +19,3 @@
 #define SYS_socketcall_getsockopt SYS_GETSOCKOPT
 #define SYS_socketcall_sendmsg SYS_SENDMSG
 #define SYS_socketcall_recvmsg SYS_RECVMSG
-

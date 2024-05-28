@@ -15,10 +15,8 @@ import sys
 import tempfile
 import threading
 import time
-
 import colored_traceback
 from pprint import pprint
-
 import pwnlib
 from pwnlib import *
 from pwnlib.asm import *
@@ -71,12 +69,9 @@ from pwnlib.util.proc import pidof
 from pwnlib.util.sh_string import sh_string, sh_prepare, sh_command_with
 from pwnlib.util.splash import *
 from pwnlib.util.web import *
-
 # Promote these modules, so that "from pwn import *" will let you access them
-
 from six.moves import cPickle as pickle, cStringIO as StringIO
 from six import BytesIO
-
 log = getLogger("pwnlib.exploit")
 error   = log.error
 warning = log.warning
@@ -84,8 +79,6 @@ warn    = log.warning
 info    = log.info
 debug   = log.debug
 success = log.success
-
 colored_traceback.add_hook()
-
 # Equivalence with the default behavior of "from import *"
 # __all__ = [x for x in tuple(globals()) if not x.startswith('_')]

@@ -1,12 +1,5 @@
 #ifndef _ASM_X86_UNISTD_32_H
 #define _ASM_X86_UNISTD_32_H
-
-/* Created from /usr/include/asm/unistd_32.h with :%s/__NR_/SYS32_/
-
-/*
- * This file contains the system call numbers.
- */
-
 #define SYS32_restart_syscall      0
 #define SYS32_exit		  1
 #define SYS32_fork		  2
@@ -83,7 +76,7 @@
 #define SYS32_sigpending		 73
 #define SYS32_sethostname	 74
 #define SYS32_setrlimit		 75
-#define SYS32_getrlimit		 76   /* Back compatible 2Gig limited rlimit */
+#define SYS32_getrlimit		 76   
 #define SYS32_getrusage		 77
 #define SYS32_gettimeofday	 78
 #define SYS32_settimeofday	 79
@@ -144,7 +137,7 @@
 #define SYS32_bdflush		134
 #define SYS32_sysfs		135
 #define SYS32_personality	136
-#define SYS32_afs_syscall	137 /* Syscall for Andrew File System */
+#define SYS32_afs_syscall	137 
 #define SYS32_setfsuid		138
 #define SYS32_setfsgid		139
 #define SYS32__llseek		140
@@ -195,10 +188,10 @@
 #define SYS32_capset		185
 #define SYS32_sigaltstack	186
 #define SYS32_sendfile		187
-#define SYS32_getpmsg		188	/* some people actually want streams */
-#define SYS32_putpmsg		189	/* some people actually want streams */
+#define SYS32_getpmsg		188	
+#define SYS32_putpmsg		189	
 #define SYS32_vfork		190
-#define SYS32_ugetrlimit		191	/* SuS compliant getrlimit */
+#define SYS32_ugetrlimit		191	
 #define SYS32_mmap2		192
 #define SYS32_truncate64		193
 #define SYS32_ftruncate64	194
@@ -227,10 +220,9 @@
 #define SYS32_pivot_root		217
 #define SYS32_mincore		218
 #define SYS32_madvise		219
-#define SYS32_madvise1		219	/* delete when C lib stub is removed */
+#define SYS32_madvise1		219	
 #define SYS32_getdents64		220
 #define SYS32_fcntl64		221
-/* 223 is unused */
 #define SYS32_gettid		224
 #define SYS32_readahead		225
 #define SYS32_setxattr		226
@@ -258,7 +250,6 @@
 #define SYS32_io_submit		248
 #define SYS32_io_cancel		249
 #define SYS32_fadvise64		250
-/* 251 is available for reuse (was briefly sys_set_zone_reclaim) */
 #define SYS32_exit_group		252
 #define SYS32_lookup_dcookie	253
 #define SYS32_epoll_create	254
@@ -292,7 +283,6 @@
 #define SYS32_mq_getsetattr	(__NR_mq_open+5)
 #define SYS32_kexec_load		283
 #define SYS32_waitid		284
-/* #define SYS32_sys_setaltroot	285 */
 #define SYS32_add_key		286
 #define SYS32_request_key	287
 #define SYS32_keyctl		288
@@ -356,5 +346,4 @@
 #define SYS32_setns		346
 #define SYS32_process_vm_readv	347
 #define SYS32_process_vm_writev	348
-
-#endif /* _ASM_X86_UNISTD_32_H */
+#endif 

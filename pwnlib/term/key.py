@@ -1,25 +1,19 @@
 from __future__ import absolute_import
 from __future__ import division
-
 import errno
 import os
 import select
 import six
 import string
 import sys
-
 from pwnlib.term import keyconsts as kc
 from pwnlib.term import termcap
-
 __all__ = ['getch', 'getraw', 'get', 'unget']
-
 # When set, convert keypad codes into regular key presses, e.g. "+" instead of
 # `<kp plus>`
 FLAG_CONVERTKP = True
-
 try:    _fd = sys.stdin.fileno()
 except Exception: _fd = os.open(os.devnull, os.O_RDONLY)
-
 def getch(timeout = 0):
     while True:
         try:
@@ -33,7 +27,6 @@ def getch(timeout = 0):
             if e.args[0] == errno.EINTR:
                 continue
             raise
-
 def getraw(timeout = None):
     '''Get list of raw key codes corresponding to zero or more key presses'''
     cs = []
@@ -44,7 +37,6 @@ def getraw(timeout = None):
             break
         c = getch()
     return cs
-
 class Matcher:
     def __init__(self, desc):
         self._desc = desc
@@ -78,14 +70,12 @@ class Matcher:
         self._code = c
         self._mods = m
         self._hash = h | (m << 6) | (t << 7)
-
     def __call__(self, k):
         if isinstance(k, Key):
             return all([k.type == self._type,
                         k.code == self._code,
                         k.mods == self._mods,
                         ])
-
     def __eq__(self, other):
         if   isinstance(other, Matcher):
             return all([other._type == self._type,
@@ -96,23 +86,18 @@ class Matcher:
             return self.__call__(other)
         else:
             return False
-
     def __neq__(self, other):
         return not self == other
-
     def __hash__(self):
         return self._hash
-
     def __str__(self):
         return self._desc
-
 class Key:
     def __init__(self, type, code = None, mods = kc.MOD_NONE):
         self.type = type
         self.code = code
         self.mods = mods
         self._str = None
-
     def __str__(self):
         if self._str:
             return self._str
@@ -139,10 +124,8 @@ class Key:
             s = 'C-' + s
         self._str = s
         return s
-
     def __repr__(self):
         return self.__str__()
-
     def __eq__(self, other):
         if   isinstance(other, (six.text_type, six.binary_type)):
             return Matcher(other)(self)
@@ -155,17 +138,13 @@ class Key:
                         ])
         else:
             return False
-
 _cbuf = []
 _kbuf = []
-
 def _read(timeout = 0):
     _cbuf.extend(getraw(timeout))
-
 def _peek():
     if _cbuf:
         return _peek_ti() or _peek_csi() or _peek_simple()
-
 def get(timeout = None):
     if _kbuf:
         return _kbuf.pop(0)
@@ -174,10 +153,8 @@ def get(timeout = None):
         return k
     _read(timeout)
     return _peek()
-
 def unget(k):
     _kbuf.append(k)
-
 # terminfo
 def _name_to_key(fname):
     if   fname in kc.FUNCSYMS:
@@ -191,9 +168,7 @@ def _name_to_key(fname):
     else:
         return None
     return k
-
 _ti_table = None
-
 def _peek_ti():
     global _cbuf
     if _ti_table is None:
@@ -203,7 +178,6 @@ def _peek_ti():
         if _cbuf[:len(seq)] == seq:
             _cbuf = _cbuf[len(seq):]
             return key
-
 def _init_ti_table():
     global _ti_table
     _ti_table = []
@@ -214,7 +188,6 @@ def _init_ti_table():
         k = _name_to_key(fname)
         if k:
             _ti_table.append((list(bytearray(seq)), k))
-
 # csi
 def _parse_csi(offset):
     i = offset
@@ -227,7 +200,6 @@ def _parse_csi(offset):
         return
     end = i
     cmd = [c, None, None]
-
     i = offset
     in_num = False
     args = []
@@ -251,16 +223,12 @@ def _parse_csi(offset):
         elif c >= 0x20 and c <= 0x2f:
             cmd[2] = c
             break
-
         i += 1
-
     return cmd, args, end + 1
-
 def _csi_func(cmd, args):
     k = Key(kc.TYPE_UNKNOWN)
     if len(args) > 1 and args[1]:
         k.mods |= args[1] - 1
-
     if   args[0] == 0x1b and len(args) == 3:
         k.type = kc.TYPE_KEYSYM
         k.code = args[2]
@@ -270,20 +238,17 @@ def _csi_func(cmd, args):
         k.type = f[0]
         k.code = f[1]
         return k
-
 def _csi_ss3(cmd, args):
     t, c = _csi_ss3s[chr(cmd[0])]
     k = Key(t, c)
     if len(args) > 1 and args[1]:
         k.mods |= args[1] - 1
     return k
-
 def _csi_u(cmd, args):
     k = Key(kc.TYPE_UNICODE, six.unichr(args[0]))
     if len(args) > 1 and args[1]:
         k.mods |= args[1] - 1
     return k
-
 def _csi_R(cmd, args):
     if cmd[0] == ord('R') and cmd[1] == ord('?'):
         if len(args) < 2:
@@ -291,13 +256,11 @@ def _csi_R(cmd, args):
         return Key(kc.TYPE_POSITION, (args[1], args[0]))
     else:
         return _csi_ss3(cmd, args)
-
 _csi_handlers = {
     '~' : _csi_func,
     'u' : _csi_u,
     'R' : _csi_R,
     }
-
 _csi_ss3s = {
     'A': (kc.TYPE_KEYSYM, kc.KEY_UP),
     'B': (kc.TYPE_KEYSYM, kc.KEY_DOWN),
@@ -312,7 +275,6 @@ _csi_ss3s = {
     'S': (kc.TYPE_FUNCTION, 4),
     'Z': (kc.TYPE_KEYSYM, kc.KEY_TAB),
 }
-
 _csi_ss3kp = {
     'M': (kc.TYPE_KEYSYM, kc.KEY_KPENTER , None),
     'X': (kc.TYPE_KEYSYM, kc.KEY_KPEQUALS, '='),
@@ -333,7 +295,6 @@ _csi_ss3kp = {
     'x': (kc.TYPE_KEYSYM, kc.KEY_KP8     , '8'),
     'y': (kc.TYPE_KEYSYM, kc.KEY_KP9     , '9'),
 }
-
 _csi_funcs = {
     1 : (kc.TYPE_KEYSYM, kc.KEY_FIND),
     2 : (kc.TYPE_KEYSYM, kc.KEY_INSERT),
@@ -364,7 +325,6 @@ _csi_funcs = {
     33: (kc.TYPE_FUNCTION, 19),
     34: (kc.TYPE_FUNCTION, 20),
     }
-
 def _peekkey_csi(offset):
     global _cbuf
     ret = _parse_csi(offset)
@@ -381,12 +341,10 @@ def _peekkey_csi(offset):
         k = _csi_ss3(cmd, args)
         if k and chr(cmd[0]) == 'Z':
             k.mods |= kc.MOD_SHIFT
-
     if k:
         return k
     else:
         return Key(kc.TYPE_UNKNOWN_CSI, (cmd, args))
-
 def _peekkey_ss3(offset):
     global _cbuf
     if len(_cbuf) <= offset:
@@ -395,17 +353,14 @@ def _peekkey_ss3(offset):
     if cmd < 0x40 or cmd >= 0x80:
         return
     _cbuf = _cbuf[offset:]
-
     if chr(cmd) in _csi_ss3s:
         return Key(*_csi_ss3s[chr(cmd)])
-
     if chr(cmd) in _csi_ss3kp:
         t, c, a = _csi_ss3kp[chr(cmd)]
         if FLAG_CONVERTKP and a:
             return Key(kc.TYPE_UNICODE, a)
         else:
             return Key(t, c)
-
 def _peek_csi():
     global _cbuf
     # print('csi', _cbuf, '\r')
@@ -420,7 +375,6 @@ def _peek_csi():
         return _peekkey_ss3(1)
     elif c0 == 0x9b:
         return _peekkey_csi(1)
-
 def _peek_simple():
     global _cbuf
     # print('simple', _cbuf, '\r')

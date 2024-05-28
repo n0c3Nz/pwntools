@@ -1,6 +1,5 @@
 #ifndef _AARCH64_SYSCALL_H
 #define _AARCH64_SYSCALL_H 1
-
 #define __NR_io_setup 0
 #define __NR_io_destroy 1
 #define __NR_io_submit 2
@@ -282,7 +281,6 @@
 #define __NR_io_pgetevents 292
 #define __NR_rseq 293
 #define __NR_kexec_file_load 294
-
 #define __NR_pidfd_send_signal 424
 #define __NR_io_uring_setup 425
 #define __NR_io_uring_enter 426
@@ -295,18 +293,14 @@
 #define __NR_fspick 433
 #define __NR_pidfd_open 434
 #define __NR_clone3 435
-
 #ifdef __ASSEMBLER__
-
 #include "aarch64-features.h"
-
 #define syscall_weak(name,wsym,sym) __syscall_weak __NR_##name, wsym, sym, __ARGS_##name
 .macro __syscall_weak name wsym sym typ
 FUNC_START_WEAK	\wsym
 __syscall	\name, \sym, \typ
 FUNC_END	\wsym
 .endm
-
 #define syscall(name,sym) __syscall __NR_##name, sym, __ARGS_##name
 .macro __syscall name sym typ
 FUNC_START	\sym
@@ -315,7 +309,5 @@ FUNC_START	\sym
         b	__unified_syscall
 FUNC_END	\sym
 .endm
-
 #endif
-
 #endif

@@ -1,7 +1,5 @@
 from __future__ import division
-
 import re
-
 from pygments.lexer import DelegatingLexer
 from pygments.lexer import RegexLexer
 from pygments.lexer import bygroups
@@ -19,12 +17,9 @@ from pygments.token import Other
 from pygments.token import Punctuation
 from pygments.token import String
 from pygments.token import Text
-
 __all__ = ['GasLexer', 'ObjdumpLexer', 'DObjdumpLexer', 'CppObjdumpLexer',
            'CObjdumpLexer', 'LlvmLexer', 'NasmLexer', 'NasmObjdumpLexer',
            'Ca65Lexer']
-
-
 class PwntoolsLexer(RegexLexer):
     """
     For Gas (AT&T) assembly code.
@@ -33,7 +28,6 @@ class PwntoolsLexer(RegexLexer):
     aliases = ['gas', 'asm']
     filenames = ['*.s', '*.S', '*.asm']
     mimetypes = ['text/x-gas']
-
     #: optional Comment or Whitespace
     string = r'"(\\"|[^"])*"'
     char = r'[\w$.@-]'
@@ -41,7 +35,6 @@ class PwntoolsLexer(RegexLexer):
     number = r'(?:-?0[xX][a-zA-Z0-9]+|\d+)'
     memory = r'(?:[\]\[])'
     bad = r'(?:\(bad\))'
-
     tokens = {
         'root': [
             include('whitespace'),
@@ -52,16 +45,13 @@ class PwntoolsLexer(RegexLexer):
             (r'[\r\n]+', Text),
             (bad, Text)
         ],
-
         'directive-args': [
             (identifier, Name.Constant),
             (string, String),
             ('@' + identifier, Name.Attribute),
             (number, Number.Integer),
             (r'[\r\n]+', Text, '#pop'),
-
             (r'#.*?$', Comment, '#pop'),
-
             include('punctuation'),
             include('whitespace')
         ],
@@ -74,10 +64,8 @@ class PwntoolsLexer(RegexLexer):
             ('([a-z0-9]+)( )(<)('+identifier+')([-+])('+number+')(>)',
                 bygroups(Number.Hex, Text, Punctuation, Name.Constant,
                          Punctuation, Number.Integer, Punctuation)),
-
             # Fun things
             (r'([\]\[]|BYTE|DWORD|PTR|\+|\-|}|{|\^|>>|<<|&)', Text),
-
             # Address constants
             (identifier, Name.Constant),
             (number, Number.Integer),
@@ -102,7 +90,6 @@ class PwntoolsLexer(RegexLexer):
             (r'[-*,.():]+', Punctuation)
         ]
     }
-
     def analyse_text(text):
         if re.match(r'^\.(text|data|section)', text, re.M):
             return True

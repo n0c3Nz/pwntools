@@ -1,12 +1,9 @@
 # Copyright (c) 2013 Pratik Kumar Sahu, Nagendra Chowdary, Anish Mathuria
 # Ported to Python by Gallopsled
 from __future__ import division
-
 # +------------------------------------------------------------------------+ 
 # |                        ARM Instructions                                | 
 # +------------------------------------------------------------------------+ 
-
-
 EOR = 1
 SUB = 2
 RSB = 3
@@ -18,7 +15,6 @@ LDM = 8
 STM = 9
 ROR = 10
 LSR = 11
-
 # (EOR/SUB/RSB)(PL/MI){S} rd, rn, #imm 
 # ==================================== 
 def dpimm(op, cond, s, d, n, imm):
@@ -44,7 +40,6 @@ def dpimm(op, cond, s, d, n, imm):
    else:
       x += "\x42"
    return x
-   
 # (EOR/SUB/RSB)PL{S} rd, rn, ra ROR #imm 
 # ====================================== 
 def dpshiftimm(op, s, d, n, a, imm):
@@ -63,7 +58,6 @@ def dpshiftimm(op, s, d, n, a, imm):
       if op == RSB:
          x += chr(0x60 | n)
    return x + "\x50" 
-
 # (EOR/SUB/RSB)PL{S} rd, rn, ra (ROR/LSR) rb 
 # ========================================== 
 def dpshiftreg(op, s, d, n, a, shift, b):
@@ -86,7 +80,6 @@ def dpshiftreg(op, s, d, n, a, shift, b):
       if op == RSB:
          x += chr(0x60 | n)
    return x + "\x50"
-
 # (LDR/STR)(PL/MI)B rd, [rn, #-imm] 
 # ================================= 
 def lsbyte(op, cond, d, n, imm):
@@ -105,17 +98,14 @@ def lsbyte(op, cond, d, n, imm):
    else:
       x += "\x45"
    return x
-
 # STMPLFD rd, (Register List)^ 
 # ============================ 
 def smul(d, reglH, reglL):
    return chr(reglL) + chr(reglH) + chr(0x40 | d) + "\x59"
-
 # LDMPLDB rn!, (Register List) 
 # ============================ 
 def lmul(n, reglH, reglL):
    return chr(reglL) + chr(reglH) + chr(0x30 | n) + "\x59"
-
 # SWI(PL/MI) 0x9f0002 
 # ============== 
 def swi(cond):
@@ -125,12 +115,10 @@ def swi(cond):
    else:
       x += "\x5f"
    return x
-
 # BMI 0xfffff4 
 # ============ 
 def bmi():
    return "\xf4\xff\xff\x4b"
-
 # STRPLB rd, [!rn, -(rm ROR #imm)] with P=0 i.e. post-indexed addressing mode 
 # =========================================================================== 
 def sbyteposti(d, n, m, imm):

@@ -1,5 +1,4 @@
 from __future__ import division
-
 import base64
 import errno
 import os
@@ -12,62 +11,44 @@ import string
 import subprocess
 import sys
 import tempfile
-
 from pwnlib import atexit
 from pwnlib.context import context
 from pwnlib.log import getLogger
 from pwnlib.util import fiddling
 from pwnlib.util import lists
 from pwnlib.util import packing
-
 log = getLogger(__name__)
-
 def align(alignment, x):
     """align(alignment, x) -> int
-
     Rounds `x` up to nearest multiple of the `alignment`.
-
     Example:
       >>> [align(5, n) for n in range(15)]
       [0, 5, 5, 5, 5, 5, 10, 10, 10, 10, 10, 15, 15, 15, 15]
     """
     return x + -x % alignment
-
-
 def align_down(alignment, x):
     """align_down(alignment, x) -> int
-
     Rounds `x` down to nearest multiple of the `alignment`.
-
     Example:
         >>> [align_down(5, n) for n in range(15)]
         [0, 0, 0, 0, 0, 5, 5, 5, 5, 5, 10, 10, 10, 10, 10]
     """
     return x - x % alignment
-
-
 def binary_ip(host):
     """binary_ip(host) -> str
-
     Resolve host and return IP as four byte string.
-
     Example:
         >>> binary_ip("127.0.0.1")
         b'\\x7f\\x00\\x00\\x01'
     """
     return socket.inet_aton(socket.gethostbyname(host))
-
-
 def size(n, abbrev = 'B', si = False):
     """size(n, abbrev = 'B', si = False) -> str
-
     Convert the length of a bytestream to human readable form.
-
     Arguments:
       n(int,iterable): The length to convert to human readable form,
         or an object which can have ``len()`` called on it.
       abbrev(str): String appended to the size, defaults to ``'B'``.
-
     Example:
         >>> size(451)
         '451B'
@@ -88,31 +69,23 @@ def size(n, abbrev = 'B', si = False):
     """
     if hasattr(n, '__len__'):
         n = len(n)
-
     base = 1000.0 if si else 1024.0
     if n < base:
         return '%d%s' % (n, abbrev)
-
     for suffix in ['K', 'M', 'G', 'T']:
         n /= base
         if n < base:
             return '%.02f%s%s' % (n, suffix, abbrev)
-
     return '%.02fP%s' % (n / base, abbrev)
-
 KB = 1000
 MB = 1000 * KB
 GB = 1000 * MB
-
 KiB = 1024
 MiB = 1024 * KiB
 GiB = 1024 * MiB
-
 def read(path, count=-1, skip=0):
     r"""read(path, count=-1, skip=0) -> str
-
     Open file, return content.
-
     Examples:
         >>> read('/proc/self/exe')[:4]
         b'\x7fELF'
@@ -122,8 +95,6 @@ def read(path, count=-1, skip=0):
         if skip:
             fd.seek(skip)
         return fd.read(count)
-
-
 def write(path, data = b'', create_dir = False, mode = 'w'):
     """Create new file or truncate existing to zero length and write data."""
     path = os.path.expanduser(os.path.expandvars(path))
@@ -133,33 +104,25 @@ def write(path, data = b'', create_dir = False, mode = 'w'):
     if mode == 'w' and isinstance(data, bytes): mode += 'b'
     with open(path, mode) as f:
         f.write(data)
-
 def which(name, all = False, path=None):
     """which(name, flags = os.X_OK, all = False) -> str or str set
-
     Works as the system command ``which``; searches $PATH for ``name`` and
     returns a full path if found.
-
     If `all` is :const:`True` the set of all found locations is returned, else
     the first occurrence or :const:`None` is returned.
-
     Arguments:
       `name` (str): The file to search for.
       `all` (bool):  Whether to return all locations where `name` was found.
-
     Returns:
       If `all` is :const:`True` the set of all locations where `name` was found,
       else the first location or :const:`None` if not found.
-
     Example:
-
         >>> which('sh') # doctest: +ELLIPSIS
         '.../bin/sh'
     """
     # If name is a path, do not attempt to resolve it.
     if os.path.sep in name:
         return name
-
     isroot = os.getuid() == 0
     out = set()
     try:
@@ -184,8 +147,6 @@ def which(name, all = False, path=None):
         return out
     else:
         return None
-
-
 def normalize_argv_env(argv, env, log, level=2):
     #
     # Validate argv
@@ -196,29 +157,23 @@ def normalize_argv_env(argv, env, log, level=2):
     argv = argv or []
     if isinstance(argv, (six.text_type, six.binary_type)):
         argv = [argv]
-
     if not isinstance(argv, (list, tuple)):
         log.error('argv must be a list or tuple: %r' % argv)
-
     if not all(isinstance(arg, (six.text_type, bytes, bytearray)) for arg in argv):
         log.error("argv must be strings or bytes: %r" % argv)
-
     # Create a duplicate so we can modify it
     argv = list(argv)
-
     for i, oarg in enumerate(argv):
         arg = packing._need_bytes(oarg, level, 0x80)  # ASCII text is okay
         if b'\x00' in arg[:-1]:
             log.error('Inappropriate nulls in argv[%i]: %r' % (i, oarg))
         argv[i] = bytearray(arg.rstrip(b'\x00'))
-
     #
     # Validate environment
     #
     # - Must be a dictionary of {string:string}
     # - No strings may contain '\x00'
     #
-
     # Create a duplicate so we can modify it safely
     env2 = []
     if hasattr(env, 'items'):
@@ -238,15 +193,10 @@ def normalize_argv_env(argv, env, log, level=2):
             if b'\x00' in v[:-1]:
                 log.error('Inappropriate nulls in env value: %r=%r' % (k, v))
             env2.append((bytearray(k.rstrip(b'\x00')), bytearray(v.rstrip(b'\x00'))))
-
     return argv, env2 or env
-
-
 def run_in_new_terminal(command, terminal=None, args=None, kill_at_exit=True, preexec_fn=None):
     """run_in_new_terminal(command, terminal=None, args=None, kill_at_exit=True, preexec_fn=None) -> int
-
     Run a command in a new terminal.
-
     When ``terminal`` is not set:
         - If ``context.terminal`` is set it will be used.
           If it is an iterable then ``context.terminal[1:]`` are default arguments.
@@ -263,20 +213,16 @@ def run_in_new_terminal(command, terminal=None, args=None, kill_at_exit=True, pr
         - If WSL (Windows Subsystem for Linux) is detected (by the presence of
           a ``wsl.exe`` binary in the ``$PATH`` and ``/proc/sys/kernel/osrelease``
           containing ``Microsoft``), a new ``cmd.exe`` window will be opened.
-
     If `kill_at_exit` is :const:`True`, try to close the command/terminal when the
     current process exits. This may not work for all terminal types.
-
     Arguments:
         command (str): The command to run.
         terminal (str): Which terminal to use.
         args (list): Arguments to pass to the terminal
         kill_at_exit (bool): Whether to close the command/terminal on process exit.
         preexec_fn (callable): Callable to invoke before exec().
-
     Note:
         The command is opened with ``/dev/null`` for stdin, stdout, stderr.
-
     Returns:
       PID of the new terminal process
     """
@@ -303,10 +249,8 @@ def run_in_new_terminal(command, terminal=None, args=None, kill_at_exit=True, pr
             qdbus = which('qdbus')
             window_id = os.environ['WINDOWID']
             konsole_dbus_service = os.environ['KONSOLE_DBUS_SERVICE']
-
             with subprocess.Popen((qdbus, konsole_dbus_service), stdout=subprocess.PIPE) as proc:
                 lines = proc.communicate()[0].decode().split('\n')
-
             # Iterate over all MainWindows
             for line in lines:
                 parts = line.split('/')
@@ -319,21 +263,17 @@ def run_in_new_terminal(command, terminal=None, args=None, kill_at_exit=True, pr
                             break
             else:
                 log.error('MainWindow not found')
-
             # Split
             subprocess.run((qdbus, konsole_dbus_service, '/konsole/' + name,
                             'org.kde.KMainWindow.activateAction', 'split-view-left-right'), stdout=subprocess.DEVNULL)
-
             # Find new session
             with subprocess.Popen((qdbus, konsole_dbus_service, os.environ['KONSOLE_DBUS_WINDOW'],
                                    'org.kde.konsole.Window.sessionList'), stdout=subprocess.PIPE) as proc:
                 session_list = map(int, proc.communicate()[0].decode().split())
             last_konsole_session = max(session_list)
-
             terminal = 'qdbus'
             args = [konsole_dbus_service, '/Sessions/{}'.format(last_konsole_session),
                     'org.kde.konsole.Session.runCommand']
-
         else:
             is_wsl = False
             if os.path.exists('/proc/sys/kernel/osrelease'):
@@ -343,33 +283,25 @@ def run_in_new_terminal(command, terminal=None, args=None, kill_at_exit=True, pr
                 terminal    = 'cmd.exe'
                 args        = ['/c', 'start']
                 distro_name = os.getenv('WSL_DISTRO_NAME')
-
                 # Split pane in Windows Terminal
                 if 'WT_SESSION' in os.environ and which('wt.exe'):
                     args.extend(['wt.exe', '-w', '0', 'split-pane', '-d', '.'])
-
                 if distro_name:
                     args.extend(['wsl.exe', '-d', distro_name, 'bash', '-c'])
                 else:
                     args.extend(['bash.exe', '-c'])
-                
-
     if not terminal:
         log.error('Could not find a terminal binary to use. Set context.terminal to your terminal.')
     elif not which(terminal):
         log.error('Could not find terminal binary %r. Set context.terminal to your terminal.' % terminal)
-
     if isinstance(args, tuple):
         args = list(args)
-
     # When not specifying context.terminal explicitly, we used to set these flags above.
     # However, if specifying terminal=['tmux', 'splitw', '-h'], we would be lacking these flags.
     # Instead, set them here and hope for the best.
     if terminal == 'tmux':
         args += ['-F' '#{pane_pid}', '-P']
-
     argv = [which(terminal)] + args
-
     if isinstance(command, six.string_types):
         if ';' in command:
             log.error("Cannot use commands with semicolon.  Create a script and invoke that directly.")
@@ -386,24 +318,17 @@ os.execve({argv0!r}, {argv!r}, os.environ)
                                argv=command,
                                argv0=which(command[0]))
         script = script.lstrip()
-
         log.debug("Created script for new terminal:\n%s" % script)
-
         with tempfile.NamedTemporaryFile(delete=False, mode='wt+') as tmp:
           tmp.write(script)
           tmp.flush()
           os.chmod(tmp.name, 0o700)
           argv += [tmp.name]
-
-
     log.debug("Launching a new terminal: %r" % argv)
-
     stdin = stdout = stderr = open(os.devnull, 'r+b')
     if terminal == 'tmux':
         stdout = subprocess.PIPE
-
     p = subprocess.Popen(argv, stdin=stdin, stdout=stdout, stderr=stderr, preexec_fn=preexec_fn)
-
     if terminal == 'tmux':
         out, _ = p.communicate()
         pid = int(out)
@@ -413,7 +338,6 @@ os.execve({argv0!r}, {argv!r}, os.environ)
             pid = int(proc.communicate()[0].decode())
     else:
         pid = p.pid
-
     if kill_at_exit:
         def kill():
             try:
@@ -423,19 +347,14 @@ os.execve({argv0!r}, {argv!r}, os.environ)
                     os.kill(pid, signal.SIGTERM)
             except OSError:
                 pass
-
         atexit.register(kill)
-
     return pid
-
 def parse_ldd_output(output):
     """Parses the output from a run of 'ldd' on a binary.
     Returns a dictionary of {path: address} for
     each library required by the specified binary.
-
     Arguments:
       output(str): The output to parse
-
     Example:
         >>> sorted(parse_ldd_output('''
         ...     linux-vdso.so.1 =>  (0x00007fffbf5fe000)
@@ -449,19 +368,15 @@ def parse_ldd_output(output):
     expr_linux   = re.compile(r'\s(?P<lib>\S?/\S+)\s+\((?P<addr>0x.+)\)')
     expr_openbsd = re.compile(r'^\s+(?P<addr>[0-9a-f]+)\s+[0-9a-f]+\s+\S+\s+[01]\s+[0-9]+\s+[0-9]+\s+(?P<lib>\S+)$')
     libs = {}
-
     for s in output.split('\n'):
         match = expr_linux.search(s) or expr_openbsd.search(s)
         if not match:
             continue
         lib, addr = match.group('lib'), match.group('addr')
         libs[lib] = int(addr, 16)
-
     return libs
-
 def mkdir_p(path):
     """Emulates the behavior of ``mkdir -p``."""
-
     try:
         os.makedirs(path)
     except OSError as exc:
@@ -469,37 +384,28 @@ def mkdir_p(path):
             pass
         else:
             raise
-
 def dealarm_shell(tube):
     """Given a tube which is a shell, dealarm it.
     """
     tube.clean()
-
     tube.sendline('which python || echo')
     if tube.recvline().startswith('/'):
         tube.sendline('''exec python -c "import signal, os; signal.alarm(0); os.execl('$SHELL','')"''')
         return tube
-
     tube.sendline('which perl || echo')
     if tube.recvline().startswith('/'):
         tube.sendline('''exec perl -e "alarm 0; exec '${SHELL:-/bin/sh}'"''')
         return tube
-
     return None
-
 def register_sizes(regs, in_sizes):
     """Create dictionaries over register sizes and relations
-
     Given a list of lists of overlapping register names (e.g. ['eax','ax','al','ah']) and a list of input sizes,
     it returns the following:
-
     * all_regs    : list of all valid registers
     * sizes[reg]  : the size of reg in bits
     * bigger[reg] : list of overlapping registers bigger than reg
     * smaller[reg]: list of overlapping registers smaller than reg
-
     Used in i386/AMD64 shellcode, e.g. the mov-shellcode.
-
     Example:
         >>> regs = [['eax', 'ax', 'al', 'ah'],['ebx', 'bx', 'bl', 'bh'],
         ... ['ecx', 'cx', 'cl', 'ch'],
@@ -591,18 +497,13 @@ def register_sizes(regs, in_sizes):
     sizes = {}
     bigger = {}
     smaller = {}
-
     for l in regs:
         for r, s in zip(l, in_sizes):
             sizes[r] = s
-
         for r in l:
             bigger[r] = [r_ for r_ in l if sizes[r_] > sizes[r] or r == r_]
             smaller[r] = [r_ for r_ in l if sizes[r_] < sizes[r]]
-
     return lists.concat(regs), sizes, bigger, smaller
-
-
 def python_2_bytes_compatible(klass):
     """
     A class decorator that defines __str__ methods under Python 2.

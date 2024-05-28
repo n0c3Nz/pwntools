@@ -1,14 +1,10 @@
 """Silly module mostly meant as an easter-egg."""
 from __future__ import absolute_import
 from __future__ import division
-
 import threading
 import time
-
 from pwnlib import term
 from pwnlib.term import text
-
-
 _banner = r'''
   .:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.
   )     _____                         _    _                            )
@@ -25,13 +21,10 @@ _banner = r'''
   (                                                                     (
   .:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.
 '''
-
 def splash():
     """Put this at the beginning of your exploit to create the illusion that
     your sploit is enterprisey and top notch quality"""
-
     def updater():
-
         colors = [
             text.blue   , text.bold_blue   ,
             text.magenta, text.bold_magenta,
@@ -42,9 +35,7 @@ def splash():
         ]
         def getcolor(n):
             return colors[(n // 4) % len(colors)]
-
         lines = ['    ' + line + '\n' for line in _banner.strip('\n').split('\n')]
-
         hs = [term.output('', frozen = False) for _ in range(len(lines))]
         ndx = 0
         import sys as _sys
@@ -64,7 +55,6 @@ def splash():
                 h.update(cur)
             ndx += 1
             time.sleep(0.15)
-
     if term.term_mode:
         t = threading.Thread(target = updater)
         t.daemon = True

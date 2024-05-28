@@ -1,4 +1,3 @@
-
 #define __NR_exit		  1
 #define __NR_fork		  2
 #define __NR_read		  3
@@ -135,7 +134,7 @@
 #define __NR_bdflush		134
 #define __NR_sysfs		135
 #define __NR_personality	136
-#define __NR_afs_syscall	137 /* Syscall for Andrew File System */
+#define __NR_afs_syscall	137 
 #define __NR_setfsuid		138
 #define __NR_setfsgid		139
 #define __NR__llseek		140
@@ -185,10 +184,10 @@
 #define __NR_capset		184
 #define __NR_sigaltstack	185
 #define __NR_sendfile		186
-#define __NR_getpmsg		187	/* some people actually want streams */
-#define __NR_putpmsg		188	/* some people actually want streams */
+#define __NR_getpmsg		187	
+#define __NR_putpmsg		188	
 #define __NR_vfork		189
-#define __NR_ugetrlimit		190	/* SuS compliant getrlimit */
+#define __NR_ugetrlimit		190	
 #define __NR_readahead		191
 #define __NR_mmap2		192
 #define __NR_truncate64		193
@@ -222,7 +221,6 @@
 #define __NR_futex		221
 #define __NR_sched_setaffinity	222
 #define __NR_sched_getaffinity	223
-/* 224 currently unused */
 #define __NR_tuxcall		225
 #define __NR_sendfile64		226
 #define __NR_io_setup		227
@@ -255,11 +253,6 @@
 #define __NR_fadvise64_64	254
 #define __NR_rtas		255
 #define __NR_sys_debug_setcontext 256
-/* Number 257 is reserved for vserver */
-/* Number 258 is reserved for new sys_remap_file_pages */
-/* Number 259 is reserved for new sys_mbind */
-/* Number 260 is reserved for new sys_get_mempolicy */
-/* Number 261 is reserved for new sys_set_mempolicy */
 #define __NR_mq_open		262
 #define __NR_mq_unlink		263
 #define __NR_mq_timedsend	264
@@ -419,7 +412,6 @@
 #define __NR_clone3	435
 #define __NR_openat2	437
 #define __NR_pidfd_getfd	438
-
 #define syscall_weak(name,wsym,sym) \
 .text; \
 .type wsym,@function; \
@@ -430,7 +422,6 @@ wsym: ; \
 sym: \
 	li	0,__NR_##name; \
 	b __unified_syscall
-
 #define syscall(name,sym) \
 .text; \
 .type sym,@function; \
@@ -438,4 +429,3 @@ sym: \
 sym: \
 	li	0,__NR_##name; \
 	b __unified_syscall
-

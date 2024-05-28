@@ -1,4 +1,3 @@
-
 #define __NR_exit		  1
 #define __NR_fork		  2
 #define __NR_read		  3
@@ -135,7 +134,7 @@
 #define __NR_bdflush		134
 #define __NR_sysfs		135
 #define __NR_personality	136
-#define __NR_afs_syscall	137 /* Syscall for Andrew File System */
+#define __NR_afs_syscall	137 
 #define __NR_setfsuid		138
 #define __NR_setfsgid		139
 #define __NR__llseek		140
@@ -185,24 +184,17 @@
 #define __NR_capset		184
 #define __NR_sigaltstack	185
 #define __NR_sendfile		186
-#define __NR_getpmsg		187	/* some people actually want streams */
-#define __NR_putpmsg		188	/* some people actually want streams */
+#define __NR_getpmsg		187	
+#define __NR_putpmsg		188	
 #define __NR_vfork		189
-#define __NR_ugetrlimit		190	/* SuS compliant getrlimit */
+#define __NR_ugetrlimit		190	
 #define __NR_readahead		191
-/* #define __NR_mmap2		192	32bit only */
-/* #define __NR_truncate64	193	32bit only */
-/* #define __NR_ftruncate64	194	32bit only */
-/* #define __NR_stat64		195	32bit only */
-/* #define __NR_lstat64		196	32bit only */
-/* #define __NR_fstat64		197	32bit only */
 #define __NR_pciconfig_read	198
 #define __NR_pciconfig_write	199
 #define __NR_pciconfig_iobase	200
 #define __NR_multiplexer	201
 #define __NR_getdents64		202
 #define __NR_pivot_root		203
-/* #define __NR_fcntl64		204	32bit only */
 #define __NR_madvise		205
 #define __NR_mincore		206
 #define __NR_gettid		207
@@ -222,9 +214,7 @@
 #define __NR_futex		221
 #define __NR_sched_setaffinity	222
 #define __NR_sched_getaffinity	223
-/* 224 currently unused */
 #define __NR_tuxcall		225
-/* #define __NR_sendfile64	226	32bit only */
 #define __NR_io_setup		227
 #define __NR_io_destroy		228
 #define __NR_io_getevents	229
@@ -252,11 +242,7 @@
 #define __NR_utimes		251
 #define __NR_statfs64		252
 #define __NR_fstatfs64		253
-/* #define __NR_fadvise64_64	254	32bit only */
 #define __NR_rtas		255
-/* Number 256 is reserved for sys_debug_setcontext */
-/* Number 257 is reserved for vserver */
-/* Number 258 is reserved for new sys_remap_file_pages */
 #define __NR_mbind		259
 #define __NR_get_mempolicy	260
 #define __NR_set_mempolicy	261
@@ -400,21 +386,15 @@
 #define __NR_clone3	435
 #define __NR_openat2	437
 #define __NR_pidfd_getfd	438
-
 #if defined(_CALL_ELF) && _CALL_ELF == 2
-
 #define __diet_proto_common(sym) \
 	.type	sym,@function
-
 #define diet_proto_weak(sym) \
 	.weak	sym; \
 	__diet_proto_common(sym)
-
 #define diet_proto(sym) \
 	.globl	sym; \
 	__diet_proto_common(sym)
-
-
 #define syscall_weak(name,wsym,sym) \
 .text; \
 diet_proto_weak(wsym); \
@@ -427,7 +407,6 @@ sym: \
 .localentry	wsym,.-wsym; \
 	li	0,__NR_##name; \
 	b	__unified_syscall
-
 #define syscall(name,sym) \
 .text; \
 diet_proto(sym); \
@@ -437,9 +416,7 @@ sym: \
 .localentry	sym,.-sym; \
 	li	0,__NR_##name; \
 	b	__unified_syscall
-
-#else /* _ELF_CALL != 2 */
-
+#else 
 #define __diet_proto_common(sym) \
 	.section ".opd","aw"; \
 	.align	3; \
@@ -448,18 +425,14 @@ sym: \
 	.previous; \
 	.size	sym,24; \
 	.type	.sym,@function
-
 #define diet_proto_weak(sym) \
 	.weak	sym; \
 	.weak	.sym; \
 	__diet_proto_common(sym)
-
 #define diet_proto(sym) \
 	.globl	sym; \
 	.globl	.sym; \
 	__diet_proto_common(sym)
-
-
 #define syscall_weak(name,wsym,sym) \
 .text; \
 diet_proto_weak(wsym); \
@@ -468,12 +441,10 @@ diet_proto(sym); \
 .sym: \
 	li	0,__NR_##name; \
 	b	__unified_syscall
-
 #define syscall(name,sym) \
 .text; \
 diet_proto(sym); \
 .sym: \
 	li	0,__NR_##name; \
 	b	__unified_syscall
-
-#endif /* _ELF_CALL == 2 */
+#endif 

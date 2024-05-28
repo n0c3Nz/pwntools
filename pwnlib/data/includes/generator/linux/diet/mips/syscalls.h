@@ -1,8 +1,4 @@
 #if _MIPS_SIM == _ABIO32
-
-/*
- * Linux o32 style syscalls are in the range from 4000 to 4999.
- */
 #define __NR_Linux			4000
 #define __NR_syscall			(__NR_Linux +	0)
 #define __NR_exit			(__NR_Linux +	1)
@@ -141,7 +137,7 @@
 #define __NR_bdflush			(__NR_Linux + 134)
 #define __NR_sysfs			(__NR_Linux + 135)
 #define __NR_personality		(__NR_Linux + 136)
-#define __NR_afs_syscall		(__NR_Linux + 137) /* Syscall for Andrew File System */
+#define __NR_afs_syscall		(__NR_Linux + 137) 
 #define __NR_setfsuid			(__NR_Linux + 138)
 #define __NR_setfsgid			(__NR_Linux + 139)
 #define __NR__llseek			(__NR_Linux + 140)
@@ -283,7 +279,6 @@
 #define __NR_mq_getsetattr		(__NR_Linux + 276)
 #define __NR_vserver			(__NR_Linux + 277)
 #define __NR_waitid			(__NR_Linux + 278)
-/* #define __NR_sys_setaltroot		(__NR_Linux + 279) */
 #define __NR_add_key			(__NR_Linux + 280)
 #define __NR_request_key		(__NR_Linux + 281)
 #define __NR_keyctl			(__NR_Linux + 282)
@@ -417,12 +412,7 @@
 #define __NR_clone3	(__NR_Linux + 435)
 #define __NR_openat2	(__NR_Linux + 437)
 #define __NR_pidfd_getfd	(__NR_Linux + 438)
-
 #elif _MIPS_SIM == _ABI64
-
-/*
- * Linux 64-bit syscalls are in the range from 5000 to 5999.
- */
 #define __NR_Linux			5000
 #define __NR_read			(__NR_Linux +	0)
 #define __NR_write			(__NR_Linux +	1)
@@ -662,7 +652,6 @@
 #define __NR_mq_getsetattr		(__NR_Linux + 235)
 #define __NR_vserver			(__NR_Linux + 236)
 #define __NR_waitid			(__NR_Linux + 237)
-/* #define __NR_sys_setaltroot		(__NR_Linux + 238) */
 #define __NR_add_key			(__NR_Linux + 239)
 #define __NR_request_key		(__NR_Linux + 240)
 #define __NR_keyctl			(__NR_Linux + 241)
@@ -767,15 +756,10 @@
 #define __NR_clone3	(__NR_Linux + 435)
 #define __NR_openat2	(__NR_Linux + 437)
 #define __NR_pidfd_getfd	(__NR_Linux + 438)
-
 #else
 #error "dietlibc not ported to your MIPS ABI yet."
 #endif
-
-
-
 #include "mips-asm.h"
-
 #define syscall_weak(name,wsym,sym) \
 .text; \
 .weak wsym; \
@@ -788,7 +772,6 @@ sym: \
 	PTR_LA	$25,__unified_syscall; \
 	jr	$25; \
 .end sym
-
 #define syscall(name,sym) \
 .text; \
 .global sym; \
@@ -799,4 +782,3 @@ sym: \
 	PTR_LA	$25,__unified_syscall; \
 	jr	$25; \
 .end sym
-

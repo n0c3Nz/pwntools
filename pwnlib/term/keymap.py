@@ -1,12 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
-
 from pwnlib.term import key
-
 __all__ = ['Keymap']
-
-
-
 class Keymap:
     def __init__(self, bindings, on_match = None, on_nomatch = None,
                   on_key = None):
@@ -17,23 +12,18 @@ class Keymap:
         self._cur = self._top
         self.trace = []
         self.register(bindings)
-
     def handle_input(self):
         self._doread = True
         while self._doread:
             self.send(key.get())
-
     def stop(self):
         self._doread = False
-
     @property
     def currently_entered(self):
         return ' '.join(map(str, self.trace))
-
     def reset(self):
         self._cur = self._top
         self.trace = []
-
     def send(self, k):
         if k is None:
             raise EOFError
@@ -57,7 +47,6 @@ class Keymap:
             self.reset()
         if len(tr) > 1 and not match:
             self.send(k)
-
     def register(self, desc, cb = None):
         if isinstance(desc, dict):
             for k, v in desc.items():
@@ -79,7 +68,6 @@ class Keymap:
                         t[m] = ({}, [])
                     t, cbs = t[m]
                 cbs.append(cb)
-
     def unregister(self, desc, cb = None):
         ms = map(key.Matcher, desc.split(' '))
         if not ms:
@@ -105,12 +93,9 @@ class Keymap:
             m = ms.pop()
             t, cbs = bt.pop()
             del t[m]
-
     def on_match(self, cb):
         self._on_match = cb
-
     def on_nomatch(self, cb):
         self._on_nomatch = cb
-
     def on_key(self, cb):
         self._on_key = cb

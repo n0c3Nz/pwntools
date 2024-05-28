@@ -1,25 +1,18 @@
 # Copyright (c) 2013 Pratik Kumar Sahu, Nagendra Chowdary, Anish Mathuria
 # Ported to Python by Gallopsled
 from __future__ import division
-
 import os
 import random
 import struct
-
-
 # +------------------------------------------------------------------------+
 # |                       RANDOM NUMBERS FUNCTIONS                         |
 # +------------------------------------------------------------------------+
-
 # get a random integer i (0<=i<maxv)
 # ==================================
 def random_get_int(maxv):
    return random.randrange(0, maxv)
-
-
 def randel(arr):
    return arr[random_get_int(len(arr))]
-
 def enc_data_msn(c, i):
    # c is the lsn to be encoded with a msn
    # lsn = least significant nibble  msn = most significant nibble

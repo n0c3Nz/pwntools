@@ -1,12 +1,8 @@
 from __future__ import absolute_import
 from __future__ import division
-
 import os
 import re
-
 from pwnlib.term import readline
-
-
 class Completer:
     def complete(self, _left, _right):
         raise Exception("unimplemented")
@@ -19,13 +15,11 @@ class Completer:
     def __exit__(self, *args):
         readline.complete_hook = self._saved_complete_hook
         readline.suggest_hook = self._saved_suggest_hook
-
 class WordCompleter(Completer):
     def __init__(self, delims = None):
         self.delims = delims or ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
         self._cur_word = None
         self._completions = []
-
     def _get_word(self, left):
         i = len(left) - 1
         while i >= 0:
@@ -34,13 +28,11 @@ class WordCompleter(Completer):
             i -= 1
         i += 1
         return left[i:]
-
     def _update(self, w):
         if w == self._cur_word:
             return
         self._cur_word = w
         self._completions = self.complete_word(w)
-
     def complete(self, buffer_left, buffer_right):
         w = self._get_word(buffer_left)
         self._update(w)
@@ -48,21 +40,17 @@ class WordCompleter(Completer):
             c = self._completions[0]
             if len(c) > len(w):
                 return c[len(w):]
-
     def suggest(self, buffer_left, _buffer_right):
         w = self._get_word(buffer_left)
         self._update(w)
         return self._completions
-
     def complete_word(self, word):
         raise Exception("unimplemented")
-
 class LongestPrefixCompleter(WordCompleter):
     def __init__(self, words = None, delims = None):
         words = words or []
         WordCompleter.__init__(self, delims)
         self.words = words
-
     def complete_word(self, word):
         if not word:
             return []
@@ -81,7 +69,6 @@ class LongestPrefixCompleter(WordCompleter):
             return [lcp]
         else:
             return cs
-
 class PathCompleter(Completer):
     def __init__(self, mask = '*', only_dirs = False):
         if mask != '*':
@@ -91,7 +78,6 @@ class PathCompleter(Completer):
             self.mask = None
         self.only_dirs = only_dirs
         self._cur_prefix = None
-
     def _update(self, prefix):
         if prefix == self._cur_prefix:
             return
@@ -120,7 +106,6 @@ class PathCompleter(Completer):
                       if self.mask.match(os.path.basename(c))
                       or os.path.isdir(c)]
             self._completions = cs
-
     def complete(self, buffer_left, buffer_right):
         self._update(buffer_left)
         cs = []
@@ -140,7 +125,6 @@ class PathCompleter(Completer):
             lcp += ch
         if len(lcp) > len(buffer_left):
             return lcp[len(buffer_left):]
-
     def suggest(self, buffer_left, buffer_right):
         self._update(buffer_left)
         out = []

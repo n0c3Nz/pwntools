@@ -3,28 +3,23 @@
 from __future__ import division
 import os
 import urllib
-
 from bs4 import BeautifulSoup
 from pwn import *
-
 uas = set()
 if os.path.isfile('useragents.txt'):
     with open('useragents.txt') as fd:
         for line in fd:
             if line:
                 uas.add(line.rstrip())
-
 def getxml(url):
     f = urllib.urlopen(url)
     xml = f.read()
     f.close()
     return xml
-
 with log.waitfor('Fetching from from http://techpatterns.com') as l:
     xml = getxml('http://techpatterns.com/downloads/firefox/useragentswitcher.xml')
     soup = BeautifulSoup(xml, 'html.parser')
     l.success()
-
 def loop(xml):
     for item in xml:
         if item.name == 'folder':
@@ -32,16 +27,13 @@ def loop(xml):
                 loop(item)
         elif item.name == 'useragent':
             uas.add(item['useragent'].strip())
-
 with log.waitfor('Parsing list') as l:
     loop(soup.useragentswitcher)
     l.success()
-
 with log.waitfor('Fetching from from http://www.user-agents.org') as l:
     xml = getxml('http://www.user-agents.org/allagents.xml')
     soup = BeautifulSoup(xml, 'html.parser')
     l.success()
-
 with log.waitfor('Parsing list') as l:
     for item in getattr(soup, 'user-agents'):
         if item.name == 'user-agent':
@@ -52,7 +44,5 @@ with log.waitfor('Parsing list') as l:
                 continue
             uas.add(ua)
     l.success()
-
 log.info('Fetched %d user agents' % len(uas))
-
 write('useragents.txt', ''.join(sorted(ua + '\n' for ua in uas)))

@@ -1,35 +1,25 @@
 """ Encoder to convert shellcode to shellcode that contains only ascii
 characters """
 # https://github.com/Gallopsled/pwntools/pull/1667
-
 from __future__ import absolute_import
-
 from itertools import product
-
 import six
-
 from pwnlib.context import LocalContext
 from pwnlib.context import context
 from pwnlib.encoders.encoder import Encoder
 from pwnlib.encoders.encoder import all_chars
 from pwnlib.util.iters import group
 from pwnlib.util.packing import *
-
-
 class AsciiShellcodeEncoder(Encoder):
     """ Pack shellcode into only ascii characters that unpacks itself and
     executes (on the stack)
-
     The original paper this encoder is based on:
     https://julianor.tripod.com/bc/bypass-msb.txt
-
     A more visual explanation as well as an implementation in C:
     https://vincentdary.github.io/blog-posts/polyasciishellgen-caezar-ascii-shellcode-generator/index.html#22-mechanism
     """
-
     def __init__(self, slop=20, max_subs=4):
         """ Init
-
         Args:
             slop (int, optional): The amount esp will be increased by in the
                 allocation phase (In addition to the length of the packed
@@ -49,18 +39,15 @@ class AsciiShellcodeEncoder(Encoder):
             super().__init__()
         self.slop = slop
         self.max_subs = max_subs
-
     @LocalContext
     def __call__(self, raw_bytes, avoid=None, pcreg=None):
         r""" Pack shellcode into only ascii characters that unpacks itself and
         executes (on the stack)
-
         Args:
             raw_bytes (bytes): The shellcode to be packed
             avoid (set, optional): Characters to avoid. Defaults to allow
                 printable ascii (0x21-0x7e).
             pcreg (NoneType, optional): Ignored
-
         Raises:
             RuntimeError: A required character is in ``avoid`` (required
                 characters are characters which assemble into assembly
@@ -73,12 +60,9 @@ class AsciiShellcodeEncoder(Encoder):
             ArithmeticError: Could not find a correct subtraction sequence
                 to get to the the desired target value with the given ``avoid``
                 parameter
-
         Returns:
             bytes: The packed shellcode
-
         Examples:
-
             >>> context.update(arch='i386', os='linux')
             >>> sc = b"\x83\xc4\x181\xc01\xdb\xb0\x06\xcd\x80Sh/ttyh/dev\x89\xe31\xc9f\xb9\x12'\xb0\x05\xcd\x80j\x17X1\xdb\xcd\x80j.XS\xcd\x801\xc0Ph//shh/bin\x89\xe3PS\x89\xe1\x99\xb0\x0b\xcd\x80"
             >>> encoders.i386.ascii_shellcode.encode(sc)
@@ -103,34 +87,25 @@ class AsciiShellcodeEncoder(Encoder):
                         str(required_chars, 'ascii')))
             allowed.difference_update(avoid)
             vocab = bytearray(map(ord, allowed))
-
         if context.arch != 'i386' or context.bits != 32:
             raise RuntimeError('Only 32-bit i386 is currently supported')
-
         int_size = context.bytes
-
         # Prepend with NOPs for the NOP sled
         shellcode = bytearray(b'\x90'*int_size + raw_bytes)
         subtractions = self._get_subtractions(shellcode, vocab)
         allocator = self._get_allocator(len(subtractions) + self.slop, vocab)
         nop_sled = b'P' * self.slop  # push eax
         return bytes(allocator + subtractions + nop_sled)
-
     @LocalContext
     def _get_allocator(self, size, vocab):
         r""" Allocate enough space on the stack for the shellcode
-
         int_size is taken from the context
-
         Args:
             size (int): The allocation size
             vocab (bytearray): Allowed characters
-
         Returns:
             bytearray: The allocator shellcode
-
         Examples:
-
             >>> context.update(arch='i386', os='linux')
             >>> vocab = bytearray(b'!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~')
             >>> encoders.i386.ascii_shellcode.encode._get_allocator(300, vocab)
@@ -156,27 +131,20 @@ class AsciiShellcodeEncoder(Encoder):
         # and eax, pos; and eax, neg ; (0b00010101 & 0b00101010 = 0b0)
         result += flat((b'%', pos, b'%', neg))
         return result
-
     @LocalContext
     def _find_negatives(self, vocab):
         r""" Find two bitwise negatives in the vocab so that when they are
         and-ed the result is 0.
-
         int_size is taken from the context
-
         Args:
             vocab (bytearray): Allowed characters
-
         Returns:
             Tuple[int, int]: value A, value B
-
         Raises:
             ArithmeticError: The allowed character set does not contain
                 two characters that when they are bitwise-and-ed with eachother
                 the result is 0
-
         Examples:
-
             >>> context.update(arch='i386', os='linux')
             >>> vocab = bytearray(b'!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~')
             >>> a, b = encoders.i386.ascii_shellcode.encode._find_negatives(vocab)
@@ -194,22 +162,16 @@ class AsciiShellcodeEncoder(Encoder):
         else:
             raise ArithmeticError(
                 'Could not find two bitwise negatives in the provided vocab')
-
     @LocalContext
     def _get_subtractions(self, shellcode, vocab):
         r""" Covert the sellcode to sub eax and posh eax instructions
-
         int_size is taken from the context
-
         Args:
             shellcode (bytearray): The shellcode to pack
             vocab (bytearray): Allowed characters
-
         Returns:
             bytearray: packed shellcode
-
         Examples:
-
             >>> context.update(arch='i386', os='linux')
             >>> sc = bytearray(b'ABCDEFGHIGKLMNOPQRSTUVXYZ')
             >>> vocab = bytearray(b'!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~')
@@ -231,29 +193,22 @@ class AsciiShellcodeEncoder(Encoder):
             last = x
             result += b'P'  # push eax
         return result
-
     @LocalContext
     def _calc_subtractions(self, last, target, vocab):
         r""" Given `target` and `last`, return a list of integers that when
          subtracted from `last` will equal `target` while only constructing
          integers from bytes in `vocab`
-
         int_size is taken from the context
-
         Args:
             last (bytearray): Original value
             target (bytearray): Desired value
             vocab (bytearray): Allowed characters
-
         Raises:
             ArithmeticError: If a sequence of subtractions could not be found
-
         Returns:
             List[bytearray]: List of numbers that would need to be subtracted
             from `last` to get to `target`
-
         Examples:
-
             >>> context.update(arch='i386', os='linux')
             >>> vocab = bytearray(b'!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~')
             >>> print(encoders.i386.ascii_shellcode.encode._calc_subtractions(bytearray(b'\x10'*4), bytearray(b'\x11'*4), vocab))
@@ -295,6 +250,4 @@ class AsciiShellcodeEncoder(Encoder):
                     '''Could not find the correct subtraction sequence
                 to get the the desired target ({}) from ({})''',
                     target[byte], last[byte]))
-
-
 encode = AsciiShellcodeEncoder()

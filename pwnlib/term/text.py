@@ -1,14 +1,10 @@
 from __future__ import absolute_import
 from __future__ import division
-
 import functools
 import os
 import sys
 import types
-
 from pwnlib.term import termcap
-
-
 def eval_when(when):
     if hasattr(when, 'isatty') or \
       when in ('always', 'never', 'auto', sys.stderr, sys.stdout):
@@ -22,7 +18,6 @@ def eval_when(when):
             return when.isatty()
     else:
         raise ValueError('text.when: must be a file-object or "always", "never" or "auto"')
-
 class Module(types.ModuleType):
     def __init__(self):
         self.__file__ = __file__
@@ -52,27 +47,22 @@ class Module(types.ModuleType):
                 s = s.decode('utf-8')
             self._attributes[x] = s
         self._cache = {}
-
     @property
     def when(self):
         return self._when
-
     @when.setter
     def when(self, val):
         self._when = eval_when(val)
-
     def _fg_color(self, c):
         c = termcap.get('setaf', c) or termcap.get('setf', c)
         if not hasattr(c, 'encode'):
             c = c.decode('utf-8')
         return c
-
     def _bg_color(self, c):
         c = termcap.get('setab', c) or termcap.get('setb', c)
         if not hasattr(c, 'encode'):
             c = c.decode('utf-8')
         return c
-
     def _decorator(self, desc, init):
         def f(self, s, when = None):
             if when:
@@ -87,11 +77,9 @@ class Module(types.ModuleType):
                     return s
         setattr(Module, desc, f)
         return functools.partial(f, self)
-
     def __getattr__(self, desc):
         if desc.startswith('_'):
             raise AttributeError(desc)
-
         try:
             ds = desc.replace('gray', 'bright_black').split('_')
             init = ''
@@ -122,9 +110,7 @@ class Module(types.ModuleType):
             return self._decorator(desc, init)
         except (IndexError, KeyError):
             raise AttributeError("'module' object has no attribute %r" % desc)
-
     def get(self, desc):
         return self.__getattr__(desc)
-
 tether = sys.modules[__name__]
 sys.modules[__name__] = Module()
